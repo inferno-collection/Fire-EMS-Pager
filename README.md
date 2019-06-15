@@ -3,9 +3,9 @@ Public Beta Version
 
 Hello, and thank you for looking at my resource.
 
-[Check out the Wiki for an installation guide, as well find out how to use the resource.](https://github.com/inferno-collection/Inferno-Fire-EMS-Pager/wiki)
+[Check out the Wiki for an installation guide, as well find out how to use the resource.](https://github.com/inferno-collection/Fire-EMS-Pager/wiki)
 
-If you have any troubles, suggestions, feedback, etc, please [check the Wiki](https://github.com/inferno-collection/Inferno-Fire-EMS-Pager/wiki), [create a new issue](https://github.com/inferno-collection/Inferno-Fire-EMS-Pager/issues/new), and/or [contact me on Discord](https://discord.gg/k3Jm6va).
+If you have any troubles, suggestions, feedback, etc, please [check the Wiki](https://github.com/inferno-collection/Fire-EMS-Pager/wiki), [create a new issue](https://github.com/inferno-collection/Fire-EMS-Pager/issues/new), and/or [contact me on Discord](https://discord.gg/k3Jm6va).
 
 Thank you to my Alpha Testers:
 * MJGaming
