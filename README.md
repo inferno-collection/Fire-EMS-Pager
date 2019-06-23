@@ -15,6 +15,7 @@ Presently, the following can be customized:
 - Radius fire siren can be heard in
 - Wait time between tones played
 - Whether to display chat suggestions
+- Which players can use which command (Steam ID whitelist)
 
 ***
 ### Development Showcase Video
