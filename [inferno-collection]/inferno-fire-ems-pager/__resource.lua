@@ -22,6 +22,8 @@ ui_page "html/index.html"
 
 -- Files needed for NUI
 files {
+	-- Whitelist file
+	"whitelist.json",
 	-- NUI File
 	"html/index.html",
 	-- Sound played after all tones have played

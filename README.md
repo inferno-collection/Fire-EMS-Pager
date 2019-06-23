@@ -1,5 +1,5 @@
 # Inferno Collection: Fire/EMS Pager + Fire Siren
-Public Beta Version 4.2
+Public Beta Version 4.3
 
 The Fire/EMS Pager + Fire Siren is a resource that allows players to have a pager on their person at all times. The pager is off by default, and must be tuned to tones in order to be paged. Once a tone or tones are paged, all pagers that are turned on will receive the tone/s, if a tone is paged that a player is tuned to, they will hear a vibration sound and a notification will pop-up on their screen informing them of the call type; if a player is not tuned to a paged tone, they will hear the tone sound, but not hear a vibration or receive a notification.
 
@@ -14,6 +14,7 @@ Presently, the following can be customized:
 - [Stations](https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-stations)
 - Radius fire siren can be heard in
 - Wait time between tones played
+- Whether to display chat suggestions
 
 ***
 ### Development Showcase Video
