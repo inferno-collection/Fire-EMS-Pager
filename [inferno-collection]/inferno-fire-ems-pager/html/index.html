@@ -1,5 +1,5 @@
 <!--
-Inferno Collection Fire/EMS Pager + Fire Siren Version 4.2
+Inferno Collection Fire/EMS Pager + Fire Siren Version 4.35
 
 Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 
@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <head>
 		<!-- Required file for FiveM -->
 		<script src="nui://game/ui/jquery.js" type="text/javascript"></script>
-		<!-- Make the NUI invisable -->
+		<!-- Make the NUI invisible -->
 		<style type="text/css">
 		html {
 			display: none;
@@ -24,25 +24,30 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             $(function() {
 				// Initialize audio player variable
 				var siren = null;
-				// Wait to receive playTone message 
+				// Wait to receive message from client script
 				window.addEventListener("message", function(event) {
+					// If client script wants a tone played
 					if (event.data.transactionType == "playTone") {
 						// Initialize audio player variable
 						var pager = null;
-						// Create a new player, load tone audio file, and play
+						// Create a new player and load tone audio file
 						pager = new Audio("./sounds/" + event.data.transactionFile + ".mp3");
+						// Set volume to max
 						pager.volume = 1.0;
+						// Play
 						pager.play();
+					// If client script wants siren played
 					} else if (event.data.transactionType == "playSiren") {
-						// Create a new player, load fire siren audio file, and play
+						// Create a new player and load fire siren audio file
 						siren = new Audio("./sounds/firesiren.mp3");
-						// Setting to 0 assuming it will be updated in the next few frames
+						// Set volume to 0 assuming it will be updated in the next few frames
 						siren.volume = 0.0;
+						// Play
 						siren.play();
+					// If client script wants volume of siren set
 					} else if (event.data.transactionType == "setSirenVolume") {
-						if (siren != null) {
-							siren.volume = event.data.volume;
-						}
+						// Set volume
+						siren.volume = event.data.volume;
 					}
 				});
 			});
