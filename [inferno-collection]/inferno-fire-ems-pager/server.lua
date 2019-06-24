@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.35
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.37
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -45,7 +45,7 @@ AddEventHandler("fire-ems-pager:whitelistCheck", function()
 		-- Loop through the whitelist array
 		for x, wId in ipairs(whitelist.ids) do
 			-- Check if the player exists in the array.
-			if GetPlayerIdentifier(source):lower() == wId.steamid:lower() then
+			if GetPlayerIdentifier(source):lower() == wId.steamhex:lower() then
 				-- Set the player's permissions based off of the whitelist file
 				whitelist.command.pager = wId.pager
 				whitelist.command.page = wId.page

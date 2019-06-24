@@ -1,5 +1,5 @@
 <!--
-Inferno Collection Fire/EMS Pager + Fire Siren Version 4.35
+Inferno Collection Fire/EMS Pager + Fire Siren Version 4.37
 
 Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 
@@ -14,9 +14,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		<script src="nui://game/ui/jquery.js" type="text/javascript"></script>
 		<!-- Make the NUI invisible -->
 		<style type="text/css">
-		html {
-			display: none;
-		}
+			html {
+				display: none;
+			}
 		</style>
     </head>
     <body>
@@ -46,8 +46,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 						siren.play();
 					// If client script wants volume of siren set
 					} else if (event.data.transactionType == "setSirenVolume") {
-						// Set volume
-						siren.volume = event.data.volume;
+						if (siren != null) {
+							// Set volume
+							siren.volume = event.data.volume;
+						}
 					}
 				});
 			});
