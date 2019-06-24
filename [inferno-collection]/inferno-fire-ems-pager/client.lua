@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.37
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.38
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -6,6 +6,42 @@
 -- Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to use, copy, modify, and merge the software, under the following conditions:
 -- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. THE SOFTWARE MAY NOT BE SOLD.
+--
+
+--
+-- Resource Configuration
+--
+local config = {} -- Do not edit
+-- Whether or not to enable chat suggestions
+config.chatSuggestions = true
+-- Whether or not to enable command whitelist
+config.whitelistEnabled = true
+-- Time in ms between the begining of each tone played
+-- 7.5 seconds by default, do not edit unless you need to
+config.waitTime = 7500
+-- The size around the siren source the siren can be heard
+-- Siren gets quieter the further from the origin, so the
+-- number below is the further spot it will be able to be heard from
+config.size = 400
+-- List of tones that can be paged, feel free to add more to this list
+-- https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-tones
+config.tones = {"medical", "rescue", "fire", "other"}
+-- List of stations fire sirens can be played at
+-- Feel free to add more stations to this list
+-- https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-stations
+config.stations = {} -- Do not edit
+table.insert(config.stations, {name = "pb", loc = vector3(-379.53, 6118.32, 31.85)}) -- Paleto Bay
+table.insert(config.stations, {name = "fz", loc = vector3(-2095.92, 2830.22, 32.96)}) -- Fort Zancudo
+table.insert(config.stations, {name = "ss", loc = vector3(1691.24, 3585.83, 35.62)}) -- Sandy Shores
+table.insert(config.stations, {name = "rh", loc = vector3(-635.09, -124.29, 39.01)}) -- Rockford Hills
+table.insert(config.stations, {name = "els", loc = vector3(1193.42, -1473.72, 34.86)}) -- East Los Santos
+table.insert(config.stations, {name = "sls", loc = vector3(199.83, -1643.38, 29.8)}) -- South Los Santos
+table.insert(config.stations, {name = "dpb", loc = vector3(-1183.13, -1773.91, 4.05)}) -- Del Perro Beach
+table.insert(config.stations, {name = "lsia", loc = vector3(-1068.74, -2379.96, 14.05)}) -- LSIA
+
+--
+--		Nothing past this point needs to be edited, all the settings for the resource are found ABOVE this line
+--		Do not make changes below this line unless you know what you are doing!
 --
 
 -- Local Pager Variables
@@ -19,10 +55,9 @@ pager.paging = false
 pager.tunedTo = {}
 -- How long to wait between tones being played.
 -- All the default tones are around 5-6 seconds long
-pager.waitTime = 7500
--- List of tones, feel free to add more to this list
--- https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-tones
-pager.tones = {"medical", "rescue", "fire", "other"}
+pager.waitTime = config.waitTime
+-- List of tones that can be paged
+pager.tones = config.tones
 
 -- Local Fire Siren Variables
 local fireSiren = {}
@@ -31,31 +66,14 @@ fireSiren.enabled = false
 -- Stations that currently have a fire siren being played at them
 fireSiren.enabledStations = {}
 -- Fire Station Variables
-fireSiren.stations = {}
--- Feel free to add more to this list
--- https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-stations
-table.insert(fireSiren.stations, {name = "pb", loc = vector3(-379.53, 6118.32, 31.85)}) -- Paleto Bay
-table.insert(fireSiren.stations, {name = "fz", loc = vector3(-2095.92, 2830.22, 32.96)}) -- Fort Zancudo
-table.insert(fireSiren.stations, {name = "ss", loc = vector3(1691.24, 3585.83, 35.62)}) -- Sandy Shores
-table.insert(fireSiren.stations, {name = "rh", loc = vector3(-635.09, -124.29, 39.01)}) -- Rockford Hills
-table.insert(fireSiren.stations, {name = "els", loc = vector3(1193.42, -1473.72, 34.86)}) -- East Los Santos
-table.insert(fireSiren.stations, {name = "sls", loc = vector3(199.83, -1643.38, 29.8)}) -- South Los Santos
-table.insert(fireSiren.stations, {name = "dpb", loc = vector3(-1183.13, -1773.91, 4.05)}) -- Del Perro Beach
-table.insert(fireSiren.stations, {name = "lsia", loc = vector3(-1068.74, -2379.96, 14.05)}) -- LSIA
--- The size around the siren source the siren can be heard.
--- Siren gets quieter the further from the origin, so the
--- number below is the further spot it will be able to be
--- heard from
-fireSiren.size = 400
-
--- Local chat suggestions variable
--- Whether or not to enable chat suggestions
-local chatSuggestions = true
+fireSiren.stations = config.stations
+-- The size around the siren source the siren can be heard
+fireSiren.size = config.size
 
 -- Local whitelist variable
 local whitelist = {}
 -- Boolean for whether the whitelist is enabled
-whitelist.enabled = true
+whitelist.enabled = config.whitelistEnabled
 -- All whitelisted ids
 whitelist.ids = {}
 -- Whitelist variable for commands
@@ -67,10 +85,10 @@ whitelist.command.page = false
 -- Boolean for whether player is whitelisted for firesiren command
 whitelist.command.firesiren = false
 
--- On client joined, add all chat suggestions
+-- On client join
 AddEventHandler("onClientMapStart", function()
 	-- If chat suggestions are enabled
-	if chatSuggestions then
+	if config.chatSuggestions then
 		-- Create a temporary variable to add more text to
 		local validTones = "Valid tones:"
 		-- Loop though all the tones
@@ -334,9 +352,9 @@ AddEventHandler("fire-ems-pager:playTones", function(tones)
 				-- New NUI message
 				SendNUIMessage({
 					-- Tell the NUI a tone needs to be played
-					transactionType     = "playTone",
+					transactionType	= "playTone",
 					-- Provide vibration tone
-					transactionFile     = "vibrate"
+					transactionFile	= "vibrate"
 				})
 				-- Draw new notification on client's screen
 				newNoti("~h~~y~" .. tone:upper() ..  " call!", true)
@@ -345,9 +363,9 @@ AddEventHandler("fire-ems-pager:playTones", function(tones)
 				-- New NUI message
 				SendNUIMessage({
 					-- Tell the NUI a tone needs to be played
-					transactionType     = "playTone",
+					transactionType	= "playTone",
 					-- Provide the tone
-					transactionFile     = tone
+					transactionFile	= tone
 				})
 			end
 			-- Wait time between tones
@@ -363,7 +381,7 @@ AddEventHandler("fire-ems-pager:playTones", function(tones)
 		})
 		-- Wait for sound to finish
 		Citizen.Wait(3000)
-		-- Aallow more tones to be paged
+		-- Allow more tones to be paged
 		pager.paging = false
 	end
 end)
@@ -390,7 +408,7 @@ AddEventHandler("fire-ems-pager:playSirens", function(stations)
 	-- New NEI message
 	SendNUIMessage({
 		-- Tell the NUI to play the siren sound
-		transactionType     = "playSiren"
+		transactionType = "playSiren"
 	})
 
 	-- Wait for sound to finish
@@ -418,7 +436,7 @@ Citizen.CreateThread(function()
 		-- If fire siren is enabled
 		if fireSiren.enabled then
 			-- Get player position
-			local pP = GetEntityCoords(GetPlayerPed(PlayerId()), false)
+			local pP = GetEntityCoords(GetPlayerPed(-1), false)
 			-- Temporary array
 			local stationDistances = {}
 			-- Loop though all valid stations
@@ -434,28 +452,25 @@ Citizen.CreateThread(function()
 			for x, station in ipairs(fireSiren.enabledStations) do
 				-- If the closest station to the player is an enabled station
 				if stationDistances[1].name == station.name then
-					-- Temporary volume variable
-					local vol = 0
 					-- If the distance to the closest station is within the fire siren radius
 					if (stationDistances[1].distance <= fireSiren.size) then
 						-- Volume is equal to 1 (max volume) mius the distance to the nearest station from the player
 						-- divided the radius of the fire siren
-						vol = (1 - (stationDistances[1].distance / fireSiren.size))
 						-- New NUI message
 						SendNUIMessage({
 							-- Tell the NUI to set the sire volume
-							transactionType     = "setSirenVolume",
+							transactionType	= "setSirenVolume",
 							-- The volume
-							volume     			= vol
+							volume			= 1 - (stationDistances[1].distance / fireSiren.size)
 						})
 					-- If the cloest station is out of the radius of the fire siren
 					else
 						-- New NUI message
 						SendNUIMessage({
 							-- Tell the NUI to set the sire volume
-							transactionType     = "setSirenVolume",
-							-- The volume (0 in this case)
-							volume     			= vol
+							transactionType	= "setSirenVolume",
+							-- The volume
+							volume     		= 0
 						})
 					end
 				end

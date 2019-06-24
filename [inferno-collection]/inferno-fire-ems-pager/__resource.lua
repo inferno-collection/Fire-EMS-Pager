@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.37
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.38
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
