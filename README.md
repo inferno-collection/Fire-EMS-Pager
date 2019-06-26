@@ -20,6 +20,9 @@ Presently, the following can be customized:
 ### Development Showcase Video
 [![Watch the Development Showcase video](https://img.youtube.com/vi/ItzmndFpmpc/maxresdefault.jpg)](https://www.youtube.com/watch?v=ItzmndFpmpc)
 ***
+### Installation Video
+[![Watch the Installation Video](https://img.youtube.com/vi/7ri7Ubpy7t8)/maxresdefault.jpg)](https://www.youtube.com/watch?v=7ri7Ubpy7t8)
+***
 
 Check out the Wiki for an [installation guide](https://github.com/inferno-collection/Fire-EMS-Pager/wiki), as well as to find out how to use the resource.
 
