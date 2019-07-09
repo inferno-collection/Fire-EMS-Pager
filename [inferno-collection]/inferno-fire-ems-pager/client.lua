@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.38
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.4
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -10,16 +10,24 @@
 
 --
 -- Resource Configuration
+-- PLEASE RESTART SERVER AFTER MAKING CHANGES TO THIS CONFIGURATION
 --
-local config = {} -- Do not edit
+local config = {} -- Do not edit this line
 -- Whether or not to enable chat suggestions
 config.chatSuggestions = true
 -- Whether or not to enable command whitelist
-config.whitelistEnabled = true
--- Time in ms between the begining of each tone played
+config.whitelistEnabled = false
+-- Separator character, goes between tones and details
+-- in /page command
+config.pageSep = "-"
+-- The name of your fire department, used in page message
+config.deptName = "Los Santos Fire"
+-- The default text when page details are not provided
+config.defaultDetails = "Report to Station"
+-- Time in ms between the beginning of each tone played,
 -- 7.5 seconds by default, do not edit unless you need to
 config.waitTime = 7500
--- The size around the siren source the siren can be heard
+-- The size around the siren source the siren can be heard.
 -- Siren gets quieter the further from the origin, so the
 -- number below is the further spot it will be able to be heard from
 config.size = 400
@@ -29,7 +37,7 @@ config.tones = {"medical", "rescue", "fire", "other"}
 -- List of stations fire sirens can be played at
 -- Feel free to add more stations to this list
 -- https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-stations
-config.stations = {} -- Do not edit
+config.stations = {} -- Do not edit this line
 table.insert(config.stations, {name = "pb", loc = vector3(-379.53, 6118.32, 31.85)}) -- Paleto Bay
 table.insert(config.stations, {name = "fz", loc = vector3(-2095.92, 2830.22, 32.96)}) -- Fort Zancudo
 table.insert(config.stations, {name = "ss", loc = vector3(1691.24, 3585.83, 35.62)}) -- Sandy Shores
@@ -40,18 +48,17 @@ table.insert(config.stations, {name = "dpb", loc = vector3(-1183.13, -1773.91, 4
 table.insert(config.stations, {name = "lsia", loc = vector3(-1068.74, -2379.96, 14.05)}) -- LSIA
 
 --
---		Nothing past this point needs to be edited, all the settings for the resource are found ABOVE this line
+--		Nothing past this point needs to be edited, all the settings for the resource are found ABOVE this line.
 --		Do not make changes below this line unless you know what you are doing!
 --
 
 -- Local Pager Variables
 local pager = {}
--- Is the cleint's local pager enabled
+-- Is the client's local pager enabled
 pager.enabled = false
 -- Are all clients currently being paged
 pager.paging = false
--- What the client's local pager is tuned to, nothing by
--- default, set by command
+-- What the client's local pager is tuned to
 pager.tunedTo = {}
 -- How long to wait between tones being played.
 -- All the default tones are around 5-6 seconds long
@@ -61,9 +68,9 @@ pager.tones = config.tones
 
 -- Local Fire Siren Variables
 local fireSiren = {}
--- Is a fire siren curreltly being paged
+-- Is a fire siren currently being paged
 fireSiren.enabled = false
--- Stations that currently have a fire siren being played at them
+-- Stations that currently have a fire siren being played
 fireSiren.enabledStations = {}
 -- Fire Station Variables
 fireSiren.stations = config.stations
@@ -84,8 +91,10 @@ whitelist.command.pager = false
 whitelist.command.page = false
 -- Boolean for whether player is whitelisted for firesiren command
 whitelist.command.firesiren = false
+-- Boolean for whether player is whitelisted for cancelpage command
+whitelist.command.cancelpage = false
 
--- On client join
+-- On client join server
 AddEventHandler("onClientMapStart", function()
 	-- If chat suggestions are enabled
 	if config.chatSuggestions then
@@ -97,7 +106,7 @@ AddEventHandler("onClientMapStart", function()
 			validTones = validTones .. " " .. tone
 		end
 		-- Add suggestion and include all valid tones
-		TriggerEvent("chat:addSuggestion", "/pager", "From already being tuned, will turn off pager. From the pager being off, enter the tones you want to be tuned to, or if already tuned, all the tones you want to be retuned to. Put a space between each tone.", {
+		TriggerEvent("chat:addSuggestion", "/pager", "From already being tuned, will turn off pager. From the pager being off, enter tones to be tuned to, or if already tuned, tones to be retuned to. Put a space between each tone.", {
 			{ name = "tone", help = validTones }
 		})
 		TriggerEvent("chat:addSuggestion", "/page", "If no other tones are currently being paged, will page entered tones. Put a space between each tone.", {
@@ -115,6 +124,11 @@ AddEventHandler("onClientMapStart", function()
 		TriggerEvent("chat:addSuggestion", "/firesiren", "If no other sirens are currently being sounded, will page fire siren at entered stations. Put a space between each station.", {
 			{ name = "stations", help = validStations }
 		})
+
+		-- Add suggestion for cancel
+		TriggerEvent("chat:addSuggestion", "/cancelpage", "Plays cancel tone and shows disregard notification.", {
+			{ name = "stations", help = validStations }
+		})
 	end
 	
 	-- If the whitelisted is enabled
@@ -125,7 +139,11 @@ AddEventHandler("onClientMapStart", function()
 		whitelist.command.pager = true
 		whitelist.command.page = true
 		whitelist.command.firesiren = true
+		whitelist.command.cancelpage = true
 	end
+
+	-- Adds page command chat template
+	TriggerEvent("chat:addTemplate", "page", "<img src='data:image/gif;base64,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' height='16'> <b>{0}</b>: {1}")
 end)
 
 -- Return from whitelist check
@@ -140,6 +158,7 @@ end)
 RegisterCommand("pager", function(source, args)
 	-- Check if the player is whitelisted to use this command
 	if whitelist.command.pager then
+		-- Base pager function, called only from this command
 		function enablePager()
 			-- Loop though all the tones provided by the client
 			for z, providedTone in ipairs(args) do
@@ -212,6 +231,10 @@ end)
 -- Base page command
 -- Used to page out a tone or tones
 RegisterCommand("page", function(source, args)
+	-- Temporary Variable to count provided tones
+	local toneCount = 0
+	-- Whether the arguments has details or not
+	local hasDetails = false
 	-- Check if the player is whitelisted to use this command
 	if whitelist.command.page then
 		-- If tones are not already being paged
@@ -224,16 +247,37 @@ RegisterCommand("page", function(source, args)
 				for x, validTone in ipairs(pager.tones) do
 					-- If a provided tone matches a valid tone
 					if providedTone:lower() == validTone then
-						-- Add it to the list of tones to be paged 
+						-- Add it to the list of tones to be paged
 						table.insert(toBePaged, validTone)
+						-- No need to keep searching for this tone
+						break
+					-- Checks for the separator character
+					elseif providedTone:lower() == config.pageSep then
+						-- Set true, used for checking and loop breaking
+						hasDetails = true
+						-- Counts up to the number of valid tones provided
+						-- plus 1, to include the separator
+						for i = toneCount + 1,1,-1 do
+							-- Remove tones from arguments to leave details
+							table.remove(args, 1)
+						end
+						-- Break from loop
+						break
 					end
 				end
+				-- If a break is needed
+				if hasDetails then
+					-- Break from loop
+					break
+				end
+				-- Increase count
+				toneCount = toneCount + 1
 			end
 			
 			-- If the number of originally provided tones matches the
 			-- number of tones, and there where tones acutally provided
 			-- in the first place
-			if not #args ~= #toBePaged and #args ~= 0 then
+			if not toneCount ~= #toBePaged and toneCount ~= 0 then
 				-- Create a temporary variable to add more text to
 				local notificationText = "~g~Paging:~y~"
 				-- Loop though all the tones
@@ -244,7 +288,7 @@ RegisterCommand("page", function(source, args)
 				-- Draw new notification on client's screen
 					newNoti(notificationText, false)
 				-- Bounces tones off of server
-				TriggerServerEvent("fire-ems-pager:pageTones", toBePaged)
+				TriggerServerEvent("fire-ems-pager:pageTones", toBePaged, hasDetails, args)
 			-- If there is a mismatch, i.e. invalid/no tone/s provided
 			else
 				-- Draw new notification on client's screen
@@ -322,9 +366,64 @@ RegisterCommand("firesiren", function(source, args)
 	end
 end)
 
+-- Base cancelpage command
+-- Used to play cancel sound on all clients
+RegisterCommand("cancelpage", function(source, args)
+	-- Check if the player is whitelisted to use this command
+	if whitelist.command.cancelpage then
+		-- If tones are not already being paged
+		if not pager.paging then
+			-- Positive feedback
+			newNoti("~g~Paging cancel tone.", true)
+			-- Bounce to server
+			TriggerServerEvent("fire-ems-pager:cancelPage")
+		else
+			-- Draw new notification on client's screen
+			newNoti("~r~~h~Tones are already being paged.", true)
+		end
+	else
+		-- Draw error message on player screen
+		newNoti("~r~You are not whitelisted for this command.", true)
+	end
+end)
+
+-- Plays tones on the client
+RegisterNetEvent("fire-ems-pager:cancelPage")
+AddEventHandler("fire-ems-pager:cancelPage", function()
+	-- Stop tones being paged over the top of others
+	pager.paging = true
+	-- If the pager is enabled, if not, ignore
+	if pager.enabled then
+		-- New NUI message
+		SendNUIMessage({
+			-- Tell the NUI a tone needs to be played
+			transactionType     = "playTone",
+			-- Provide ending beeps
+			transactionFile     = "cancel"
+		})
+
+		-- Send message to chat, only people with pagers can see
+		-- the message on their screen
+		TriggerEvent("chat:addMessage", {
+			-- Use page template
+			templateId = "page",
+			-- "Fire Control" in red
+			color = { 255, 0, 0},
+			-- Allow multiline
+			multiline = true,
+			-- Message
+			args = {"Fire Control", "\nAttention " .. config.deptName .. " - Call canceled, disregard response."}
+		})
+	end
+	-- Wait for sound to finish
+	Citizen.Wait(3500)
+	-- Allow more tones to be paged
+	pager.paging = false
+end)
+
 -- Plays tones on the client
 RegisterNetEvent("fire-ems-pager:playTones")
-AddEventHandler("fire-ems-pager:playTones", function(tones)
+AddEventHandler("fire-ems-pager:playTones", function(tones, hasDetails, details)
 	-- Stop tones being paged over the top of others
 	pager.paging = true
 	-- If the pager is enabled, if not, ignore
@@ -379,11 +478,74 @@ AddEventHandler("fire-ems-pager:playTones", function(tones)
 			-- Provide ending beeps
 			transactionFile     = "end"
 		})
-		-- Wait for sound to finish
-		Citizen.Wait(3000)
-		-- Allow more tones to be paged
-		pager.paging = false
+
+		-- Temporary variable for hours
+		local hours = GetClockHours()
+		-- If hours are less than or equal to 9
+		if hours <= 9 then
+			-- Add a 0 infront
+			hours = "0" .. tostring(hours)
+		end
+		-- Temporary variable for minutes
+		local minutes = GetClockMinutes()
+		-- If minutes are less than or equal to 9
+		if minutes <= 9 then
+			-- Add a 0 infront
+			minutes = "0" .. tostring(minutes)
+		end
+
+		-- If a location was included
+		if hasDetails then
+			-- Create a temporary variable for details
+			local newDetails = ""
+			-- Create a temporary variable for tones
+			local newTones = ""
+
+			-- Loop though details (each word is an element)
+			for z, l in ipairs(details) do
+				-- Add word to temporary variable
+				newDetails = newDetails .. " " .. l
+			end
+			-- Capitalise first letter
+			newDetails = newDetails:gsub("^%l", string.upper)
+
+			-- Loop though all tones
+			for z, tone in ipairs(tones) do
+				-- Add tone to string and capitalise
+				newTones = newTones .. tone:gsub("^%l", string.upper) .. " "
+			end
+
+			-- Send message to chat, only people with pagers can see
+			-- the message on their screen
+			TriggerEvent("chat:addMessage", {
+				-- Use page template
+				templateId = "page",
+				-- "Fire Control" in red
+				color = { 255, 0, 0},
+				-- Allow multiline
+				multiline = true,
+				-- Message
+				args = {"Fire Control", "\nAttention " .. config.deptName .. " - " .. newDetails .. " - " .. newTones .. "Emergency.\n\nTimeout " .. hours .. minutes.. "."}
+			})
+		else
+			-- Send message to chat, only people with pagers can see
+			-- the message on their screen
+			TriggerEvent("chat:addMessage", {
+				-- Use page template
+				templateId = "page",
+				-- "Fire Control" in red
+				color = { 255, 0, 0},
+				-- Allow multiline
+				multiline = true,
+				-- Message
+				args = {"Fire Control", "\nAttention " .. config.deptName .. " - " .. config.defaultDetails .. ".\n\nTimeout " .. hours .. minutes.. "."}
+			})
+		end
 	end
+	-- Wait for sound to finish
+	Citizen.Wait(3000)
+	-- Allow more tones to be paged
+	pager.paging = false
 end)
 
 -- Play fire sirens

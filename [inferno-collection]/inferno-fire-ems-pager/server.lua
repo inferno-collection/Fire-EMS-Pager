@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.38
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.4
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -10,8 +10,14 @@
 
 -- Play tones on all clients
 RegisterServerEvent("fire-ems-pager:pageTones")
-AddEventHandler("fire-ems-pager:pageTones", function(tones)
-	TriggerClientEvent("fire-ems-pager:playTones", -1, tones)
+AddEventHandler("fire-ems-pager:pageTones", function(tones, hasDetails, details)
+	TriggerClientEvent("fire-ems-pager:playTones", -1, tones, hasDetails, details)
+end)
+
+-- Play cancel sound on all clients
+RegisterServerEvent("fire-ems-pager:cancelPage")
+AddEventHandler("fire-ems-pager:cancelPage", function()
+	TriggerClientEvent("fire-ems-pager:cancelPage", -1)
 end)
 
 -- Play fire siren on all clients
@@ -35,6 +41,8 @@ AddEventHandler("fire-ems-pager:whitelistCheck", function()
 	whitelist.command.page = false
 	-- Boolean for whether player is whitelisted for firesiren command
 	whitelist.command.firesiren = false
+	-- Boolean for whether player is whitelisted for cancelpage command
+	whitelist.command.cancelpage = false
 	-- Collect all the data from the whitelist.json file
 	local data = LoadResourceFile(GetCurrentResourceName(), "whitelist.json")
 	-- If able to collect data
@@ -50,6 +58,7 @@ AddEventHandler("fire-ems-pager:whitelistCheck", function()
 				whitelist.command.pager = wId.pager
 				whitelist.command.page = wId.page
 				whitelist.command.firesiren = wId.firesiren
+				whitelist.command.cancelpage = wId.cancelpage
 				-- Break the loop, no more searching needed
 				break
 			end
@@ -67,6 +76,7 @@ AddEventHandler("fire-ems-pager:whitelistCheck", function()
 		whitelist.command.pager = true
 		whitelist.command.page = true
 		whitelist.command.firesiren = true
+		whitelist.command.cancelpage = true
 	end	
 	TriggerClientEvent("fire-ems-pager:return:whitelistCheck", source, whitelist.command)
 end)
