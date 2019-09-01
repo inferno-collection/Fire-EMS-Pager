@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.4
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.5
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -34,7 +34,7 @@ files {
 	"html/sounds/firesiren.mp3",
 	-- Cancel sound
 	"html/sounds/cancel.mp3",
-	
+
 	-- Tones, see here for how to add custom tones:
 	-- https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-tones
 	"html/sounds/rescue.mp3",

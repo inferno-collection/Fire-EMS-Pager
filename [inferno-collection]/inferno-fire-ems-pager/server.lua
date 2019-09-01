@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.4
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.5
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -9,74 +9,152 @@
 --
 
 -- Play tones on all clients
-RegisterServerEvent("fire-ems-pager:pageTones")
-AddEventHandler("fire-ems-pager:pageTones", function(tones, hasDetails, details)
-	TriggerClientEvent("fire-ems-pager:playTones", -1, tones, hasDetails, details)
+RegisterServerEvent("Fire-EMS-Pager:PageTones")
+AddEventHandler("Fire-EMS-Pager:PageTones", function(Tones, HasDetails, Details)
+	-- Bounce to all clients
+	TriggerClientEvent("Fire-EMS-Pager:PlayTones", -1, Tones, HasDetails, Details)
 end)
 
 -- Play cancel sound on all clients
-RegisterServerEvent("fire-ems-pager:cancelPage")
-AddEventHandler("fire-ems-pager:cancelPage", function()
-	TriggerClientEvent("fire-ems-pager:cancelPage", -1)
+RegisterServerEvent("Fire-EMS-Pager:CancelPage")
+AddEventHandler("Fire-EMS-Pager:CancelPage", function(Tones, HasDetails, Details)
+	-- Bounce to all clients
+	TriggerClientEvent("Fire-EMS-Pager:CancelPage", -1, Tones, HasDetails, Details)
 end)
 
 -- Play fire siren on all clients
-RegisterServerEvent("fire-ems-pager:soundSirens")
-AddEventHandler("fire-ems-pager:soundSirens", function(stations)
-	TriggerClientEvent("fire-ems-pager:playSirens", -1, stations)
+RegisterServerEvent("Fire-EMS-Pager:SoundSirens")
+AddEventHandler("Fire-EMS-Pager:SoundSirens", function(Stations)
+	-- Bounce to all clients
+	TriggerClientEvent("Fire-EMS-Pager:PlaySirens", -1, Stations)
 end)
 
 -- Whitelist check on server join
-RegisterServerEvent("fire-ems-pager:whitelistCheck")
-AddEventHandler("fire-ems-pager:whitelistCheck", function()
-	-- Local whitelist variable
-	local whitelist = {}
-	-- All whitelisted ids
-	whitelist.ids = {}
-	-- Whitelist variable for commands
-	whitelist.command = {}
-	-- Boolean for whether player is whitelisted for pager command
-	whitelist.command.pager = false
-	-- Boolean for whether player is whitelisted for page command
-	whitelist.command.page = false
-	-- Boolean for whether player is whitelisted for firesiren command
-	whitelist.command.firesiren = false
-	-- Boolean for whether player is whitelisted for cancelpage command
-	whitelist.command.cancelpage = false
-	-- Collect all the data from the whitelist.json file
-	local data = LoadResourceFile(GetCurrentResourceName(), "whitelist.json")
-	-- If able to collect data
-	if data then
-		-- Place the decoded whitelist into the array
-		whitelist.ids = json.decode(data)
-		
-		-- Loop through the whitelist array
-		for x, wId in ipairs(whitelist.ids) do
-			-- Check if the player exists in the array.
-			if GetPlayerIdentifier(source):lower() == wId.steamhex:lower() then
-				-- Set the player's permissions based off of the whitelist file
-				whitelist.command.pager = wId.pager
-				whitelist.command.page = wId.page
-				whitelist.command.firesiren = wId.firesiren
-				whitelist.command.cancelpage = wId.cancelpage
-				-- Break the loop, no more searching needed
-				break
+RegisterServerEvent("Fire-EMS-Pager:WhitelistCheck")
+AddEventHandler("Fire-EMS-Pager:WhitelistCheck", function(Whitelist)
+	for i in pairs(Whitelist.Command) do
+		Whitelist.Command[i] = "pending"
+	end
+
+	-- If usin json file as whitelist
+	if Whitelist.Enabled:lower() == "json" then
+		-- Collect all the data from the whitelist.json file
+		local Data = LoadResourceFile(GetCurrentResourceName(), "whitelist.json")
+		-- If able to collect data
+		if Data then
+			-- Place the decoded whitelist into the array
+			local Entries = json.decode(Data)
+
+			-- Loop through the whitelist array
+			for _, Entry in ipairs(Entries) do
+				-- Check if the player exists in the array.
+				if GetPlayerIdentifier(source):lower() == Entry.steamhex:lower() then
+					-- Loop though all values in whitelist entry
+					for i in pairs(Entry) do
+						-- If the value is not the player's steam hex
+						if i ~= "steamhex" then
+							-- If whitelist value is true, aka they have access to a command
+							if Entry[i] then
+								-- If command is a valid command
+								if Whitelist.Command[i] then
+									-- Allow player to use that command
+									Whitelist.Command[i] = true
+								-- If command is not valid
+								else
+									-- Print error message to server console
+									print("===================================================================")
+									print("==============================WARNING==============================")
+									print("/" .. i .. " is not a valid command, but is listed in ")
+									print(Entry.steamhex:lower() .. "'s whitelist entry. Please correct this")
+									print("issue, and reload the whitelist with /pagerwhitelist reload.")
+									print("Note: Entries are CaSe SeNsItIvE.")
+									print("===================================================================")
+								end
+							end
+						end
+					end
+					-- Break the loop once whitelist entry found
+					break
+				end
+			end
+		-- If unable to load json file
+		else
+			-- Print error message to server console
+			print("===================================================================")
+			print("==============================WARNING==============================")
+			print("Unable to load whitelist file for Inferno-Fire-EMS-Pager. The white")
+			print("list has been disabled. This message will appear every time someone")
+			print("joins the server until the issue is corrected.")
+			print("===================================================================")
+			-- Loop through all commands
+			for i in pairs(Whitelist.Command) do
+				-- Grant players all permissions
+				Whitelist.Command[i] = true
+			end
+			-- Override whitelist permission
+			Whitelist.Command.pagerwhitelist = false
+		end
+
+		-- Loop through all commands
+		for i in pairs(Whitelist.Command) do
+			-- If command is still pending
+			if Whitelist.Command[i] == "pending" then
+				-- Deny access
+				Whitelist.Command[i] = false
 			end
 		end
-	-- If unable to load json file
+	-- If using Ace permissions
+	elseif Whitelist.Enabled:lower() == "ace" then
+		-- Loop through all commands
+		for i in pairs(Whitelist.Command) do
+			-- Grant player permission to command based on Ace group
+			Whitelist.Command[i] = IsPlayerAceAllowed(source, "fire-ems-pager." .. i)
+		end
+	-- If using neither json, Ace, or disabled
 	else
 		-- Print error message to server console
 		print("===================================================================")
 		print("==============================WARNING==============================")
-		print("Unable to load whitelist file for Inferno-Fire-EMS-Pager. The white")
-		print("list has been disabled. This message will appear every time someone")
-		print("joins the server until the issue is corrected.")
+		print("''" .. tostring(Whitelist.Enabled) .. "'' is not a valid Whitelist option.")
+		print("The whitelist has been disabled.")
 		print("===================================================================")
-		-- Grant player all permissions so the resource is not totally broken
-		whitelist.command.pager = true
-		whitelist.command.page = true
-		whitelist.command.firesiren = true
-		whitelist.command.cancelpage = true
-	end	
-	TriggerClientEvent("fire-ems-pager:return:whitelistCheck", source, whitelist.command)
+		-- Loop through all commands
+		for i in pairs(Whitelist.Command) do
+			-- Grant players all permissions
+			Whitelist.Command[i] = true
+		end
+		-- Override whitelist permission
+		Whitelist.Command.pagerwhitelist = false
+	end
+	-- Return whietlist object to client
+	TriggerClientEvent("Fire-EMS-Pager:return:WhitelistCheck", source, Whitelist)
+end)
+
+-- Whitelist reload on all clients
+RegisterServerEvent("Fire-EMS-Pager:WhitelistReload")
+AddEventHandler("Fire-EMS-Pager:WhitelistReload", function()
+	-- Bounce to all clients
+	TriggerClientEvent("Fire-EMS-Pager:WhitelistRecheck", -1)
+end)
+
+-- Add entry to whitelist (json only)
+RegisterServerEvent("Fire-EMS-Pager:WhitelistAdd")
+AddEventHandler("Fire-EMS-Pager:WhitelistAdd", function(ID, Entry)
+	-- Collect all the data from the whitelist.json file
+	local Data = json.decode(LoadResourceFile(GetCurrentResourceName(), "whitelist.json"))
+
+	-- If 'steam hex' provided was a number
+	if tonumber(ID) then
+		-- Get steam hex based off of number
+		ID = GetPlayerIdentifier(ID)
+	end
+
+	-- Add the steam hex to the whitelist entry
+	Entry.steamhex = ID
+	-- Add the entry to the existing whitelist
+	table.insert(Data, Entry)
+	-- Covert the entire object to a json format, then save it over the existing file
+	SaveResourceFile(GetCurrentResourceName(), "whitelist.json", json.encode(Data), -1)
+	-- Force all clients to reload their whitelists
+	TriggerClientEvent("Fire-EMS-Pager:WhitelistRecheck", -1)
 end)
