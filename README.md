@@ -2,7 +2,7 @@
 # Inferno Collection: Fire/EMS Pager + Fire Siren
 [![Build Status](https://travis-ci.com/inferno-collection/Fire-EMS-Pager.svg?branch=master)](https://travis-ci.com/inferno-collection/Fire-EMS-Pager)
 
-__Public Beta Version 4.5__
+__Public Beta Version 4.51__
 
 The Fire/EMS Pager + Fire Siren is a resource that allows players to have a pager on their person at all times. The pager is off by default, and must be tuned to tones in order to be paged. Once a tone or tones are paged, pagers tuned to these tones will receive the tone/s; if a tone is paged that a player is tuned to, they will hear a vibration sound and a notification will pop-up on their screen informing them of the call type, if a player is not tuned to a paged tone they will hear the tone sound, but not hear a vibration or receive a notification.
 
@@ -13,15 +13,17 @@ In the case of the pager, multiple tones can be tuned to, and paged at once; for
 The Fire/EMS Pager + Fire Siren resource is not only designed to be as efficient and lightweight as possible, but also to be customizable, and allow server owners to have as much control as possible over the resource, without the need to edit any code (with the exception of the configuration).
 
 Presently, the following can be customized:
-- [Tones](https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-tones)
-- [Stations](https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-stations)
-- Radius fire siren can be heard in per station
-- Department name in messages
-- Default /page message
-- Wait time between tones played
-- Whether to display chat suggestions
-- Which players can use which command (via a whitelist)
-- Choice of three whitelist options:
+- [Tones](https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-tones).
+- [Stations](https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-stations).
+- Radius fire siren can be heard in per station.
+- Department name in messages.
+- Default /page message.
+- Wait time between tones played.
+- Whether to display chat suggestions.
+- Whether to display messages at all.
+    - I.E. disable all messages for realism.
+- Which players can use which command (via a whitelist).
+- Choice of three whitelist options:.
     1. Steam ID based JSON file
     2. Ace Permissions
     3. No whitelist
@@ -63,7 +65,7 @@ If you have any troubles, suggestions, feedback, etc, please [check the Wiki](ht
 Thank you to our Alpha Testers, and their respective servers and players, for testing this resource:
 * RNLAF_GAMING#0322
 * LurkingSpirit #8338
-* <\<NL>>wolfblood1445#4764 Tom | DutchGamingsHD15#7193
+* DutchGamingsHD15#7193
 * J. Hughesman #6922
 * Ovist#9081
 * FamalamJamalam#0001
@@ -72,6 +74,7 @@ Thank you to our Alpha Testers, and their respective servers and players, for te
 
 > The Inferno Collection Team
 * @ChristopherM
-* @Scott_UK 
+* @Scott_UK
+* @FrozenN00b
 ***
 Interested in keeping up-to-date with what we are working on? [Check out our roadmap](https://inferno-collection.com/roadmap).

@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.5
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.51
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -13,8 +13,13 @@
 -- PLEASE RESTART SERVER AFTER MAKING CHANGES TO THIS CONFIGURATION
 --
 local Config = {} -- Do not edit this line
+-- Whether or not to disable all on-screen messages, exect call details
+Config.DisableAllMessages = false
 -- Whether or not to enable chat suggestions
 Config.ChatSuggestions = true
+-- Whether or not to enable a reminder for whitelisted people to enable their pagers shortly
+-- after they join the server, if they have not done so already
+Config.Reminder = true
 -- Whether or not to enable command whitelist.
 -- "ace" to use Ace permissions, "json" to use whitelist.json file, or false to disable.
 Config.WhitelistEnabled = false
@@ -180,13 +185,24 @@ RegisterNetEvent("Fire-EMS-Pager:return:WhitelistCheck")
 AddEventHandler("Fire-EMS-Pager:return:WhitelistCheck", function(NewWhitelist)
 	-- Update local whitelist values with server ones
 	Whitelist = NewWhitelist
+
+	-- If reminder is enabled and the client is whitelisted to use the /pager command
+	if Config.Reminder and Whitelist.Command.pager then
+		-- Wait two minutes after they join the server
+		Citizen.Wait(120000)
+		-- If their pager is still not enabled
+		if not Pager.Enabled then
+			-- Send reminder
+			NewNoti("~y~Don't forget to tune your pager!", true)
+		end
+	end
 end)
 
 -- Forces a whitelist reload on the client
 RegisterNetEvent("Fire-EMS-Pager:WhitelistRecheck")
 AddEventHandler("Fire-EMS-Pager:WhitelistRecheck", function()
 	-- Ask the server for client's lastest whitelist status
-	TriggerServerEvent("Fire-EMS-Pager:WhitelistCheck")
+	TriggerServerEvent("Fire-EMS-Pager:WhitelistCheck", Whitelist)
 end)
 
 -- /pager command
@@ -823,12 +839,14 @@ end)
 
 -- Draws notification on client's screen
 function NewNoti(Text, Flash)
-	-- Tell GTA that a string will be passed
-	SetNotificationTextEntry("STRING")
-	-- Pass temporary variable to notification
-	AddTextComponentString(Text)
-	-- Draw new notification on client's screen
-	DrawNotification(Flash, true)
+	if not Config.DisableAllMessages then
+		-- Tell GTA that a string will be passed
+		SetNotificationTextEntry("STRING")
+		-- Pass temporary variable to notification
+		AddTextComponentString(Text)
+		-- Draw new notification on client's screen
+		DrawNotification(Flash, true)
+	end
 end
 
 -- Resource master loop
