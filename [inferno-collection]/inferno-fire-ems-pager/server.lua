@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.51
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.52 Alpha
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -11,21 +11,18 @@
 -- Play tones on all clients
 RegisterServerEvent("Fire-EMS-Pager:PageTones")
 AddEventHandler("Fire-EMS-Pager:PageTones", function(Tones, HasDetails, Details)
-	-- Bounce to all clients
 	TriggerClientEvent("Fire-EMS-Pager:PlayTones", -1, Tones, HasDetails, Details)
 end)
 
 -- Play cancel sound on all clients
 RegisterServerEvent("Fire-EMS-Pager:CancelPage")
 AddEventHandler("Fire-EMS-Pager:CancelPage", function(Tones, HasDetails, Details)
-	-- Bounce to all clients
 	TriggerClientEvent("Fire-EMS-Pager:CancelPage", -1, Tones, HasDetails, Details)
 end)
 
 -- Play fire siren on all clients
 RegisterServerEvent("Fire-EMS-Pager:SoundSirens")
 AddEventHandler("Fire-EMS-Pager:SoundSirens", function(Stations)
-	-- Bounce to all clients
 	TriggerClientEvent("Fire-EMS-Pager:PlaySirens", -1, Stations)
 end)
 
@@ -40,9 +37,7 @@ AddEventHandler("Fire-EMS-Pager:WhitelistCheck", function(Whitelist)
 	if Whitelist.Enabled:lower() == "json" then
 		-- Collect all the data from the whitelist.json file
 		local Data = LoadResourceFile(GetCurrentResourceName(), "whitelist.json")
-		-- If able to collect data
 		if Data then
-			-- Place the decoded whitelist into the array
 			local Entries = json.decode(Data)
 
 			-- Loop through the whitelist array
@@ -61,7 +56,6 @@ AddEventHandler("Fire-EMS-Pager:WhitelistCheck", function(Whitelist)
 									Whitelist.Command[i] = true
 								-- If command is not valid
 								else
-									-- Print error message to server console
 									print("===================================================================")
 									print("==============================WARNING==============================")
 									print("/" .. i .. " is not a valid command, but is listed in ")
@@ -73,13 +67,12 @@ AddEventHandler("Fire-EMS-Pager:WhitelistCheck", function(Whitelist)
 							end
 						end
 					end
-					-- Break the loop once whitelist entry found
+
 					break
 				end
 			end
 		-- If unable to load json file
 		else
-			-- Print error message to server console
 			print("===================================================================")
 			print("==============================WARNING==============================")
 			print("Unable to load whitelist file for Inferno-Fire-EMS-Pager. The white")
@@ -126,14 +119,13 @@ AddEventHandler("Fire-EMS-Pager:WhitelistCheck", function(Whitelist)
 		-- Override whitelist permission
 		Whitelist.Command.pagerwhitelist = false
 	end
-	-- Return whietlist object to client
+
 	TriggerClientEvent("Fire-EMS-Pager:return:WhitelistCheck", source, Whitelist)
 end)
 
 -- Whitelist reload on all clients
 RegisterServerEvent("Fire-EMS-Pager:WhitelistReload")
 AddEventHandler("Fire-EMS-Pager:WhitelistReload", function()
-	-- Bounce to all clients
 	TriggerClientEvent("Fire-EMS-Pager:WhitelistRecheck", -1)
 end)
 
@@ -155,6 +147,6 @@ AddEventHandler("Fire-EMS-Pager:WhitelistAdd", function(ID, Entry)
 	table.insert(Data, Entry)
 	-- Covert the entire object to a json format, then save it over the existing file
 	SaveResourceFile(GetCurrentResourceName(), "whitelist.json", json.encode(Data), -1)
-	-- Force all clients to reload their whitelists
+
 	TriggerClientEvent("Fire-EMS-Pager:WhitelistRecheck", -1)
 end)

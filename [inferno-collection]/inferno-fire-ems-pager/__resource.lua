@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.51
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.52 Alpha
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -22,17 +22,11 @@ ui_page "html/index.html"
 
 -- Files needed for NUI
 files {
-	-- Whitelist file
 	"whitelist.json",
-	-- NUI File
 	"html/index.html",
-	-- Sound played after all tones have played
 	"html/sounds/end.mp3",
-	-- Sound played when you are tuned to a paged tone
 	"html/sounds/vibrate.mp3",
-	-- Fire siren sound
 	"html/sounds/firesiren.mp3",
-	-- Cancel sound
 	"html/sounds/cancel.mp3",
 
 	-- Tones, see here for how to add custom tones:

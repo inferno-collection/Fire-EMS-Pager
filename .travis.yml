@@ -1,4 +1,4 @@
-# Inferno Collection Fire/EMS Pager + Fire Siren Version 4.51
+# Inferno Collection Fire/EMS Pager + Fire Siren Version 4.52 Alpha
 #
 # Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 #
@@ -33,3 +33,12 @@ install:
 
 script:
   - luacheck -g -a --no-max-line-length --no-max-comment-line-length [inferno-collection]/inferno-fire-ems-pager
+
+after_success:
+  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh success $WEBHOOK_URL
+after_failure:
+  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh failure $WEBHOOK_URL
