@@ -1,5 +1,5 @@
 <!--
-Inferno Collection Fire/EMS Pager + Fire Siren Version 4.52 Alpha
+Inferno Collection Fire/EMS Pager + Fire Siren Version 4.53 Alpha
 
 Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 
@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <body>
 		<script type="text/javascript">
             $(function() {
-				var siren = null;
+				var FireSirens = [];
 
 				// Wait to receive message from client script
 				window.addEventListener("message", function(event) {
@@ -33,14 +33,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 						pager.play();
 
 					} else if (event.data.PayloadType == "PlaySiren") {
-						siren = new Audio("./sounds/firesiren.mp3");
-						// Set volume to 0 assuming it will be updated in the next few frames
-						siren.volume = 0.0;
-						siren.play();
+						if (!FireSirens[event.data.Payload[0]]) {
+							FireSirens[event.data.Payload[0]] = new Audio("./sounds/firesiren.mp3");
+							// Set volume to 0 assuming it will be updated in the next few frames
+							FireSirens[event.data.Payload[0]].volume = 0.0;
+							FireSirens[event.data.Payload[0]].play();
+							FireSirens[event.data.Payload[0]].addEventListener("ended",function(){
+								// Send call back to remove siren
+								$.post("http://inferno-fire-ems-pager/RemoveSiren", JSON.stringify({
+									Name: event.data.Payload[0],
+									ID: event.data.Payload[1]
+								}));
+								FireSirens[event.data.Payload[0]] = null;
+							});
+						}
 
 					} else if (event.data.PayloadType == "SetSirenVolume") {
-						if (siren != null) {
-							siren.volume = event.data.volume;
+						if (FireSirens[event.data.Payload[0]]) {
+							FireSirens[event.data.Payload[0]].volume = event.data.Payload[1];
 						}
 					}
 				});

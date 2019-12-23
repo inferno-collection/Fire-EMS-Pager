@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.52 Alpha
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.53 Alpha
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -8,13 +8,38 @@
 -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. THE SOFTWARE MAY NOT BE SOLD.
 --
 
--- Play tones on all clients
+--
+--		Nothing past this point needs to be edited, all the settings for the resource are found ABOVE this line.
+--		Do not make changes below this line unless you know what you are doing!
+--
+
+-- Master Fire Siren storage variable
+local FireSirens = {}
+
+RegisterServerEvent("Fire-EMS-Pager:StoreSiren")
+AddEventHandler("Fire-EMS-Pager:StoreSiren", function(Station)
+	if not FireSirens[Station.Name:lower()] then
+		FireSirens[Station.Name:lower()] = Station
+		FireSirens[Station.Name:lower()].ID = source
+
+		TriggerClientEvent("Fire-EMS-Pager:Bounce:ServerValues", -1, FireSirens)
+	end
+end)
+
+RegisterServerEvent("Fire-EMS-Pager:RemoveSiren")
+AddEventHandler("Fire-EMS-Pager:RemoveSiren", function(StationName)
+	if FireSirens[StationName] then
+		FireSirens[StationName] = nil
+	end
+end)
+
+-- Plays tones on all clients
 RegisterServerEvent("Fire-EMS-Pager:PageTones")
 AddEventHandler("Fire-EMS-Pager:PageTones", function(Tones, HasDetails, Details)
 	TriggerClientEvent("Fire-EMS-Pager:PlayTones", -1, Tones, HasDetails, Details)
 end)
 
--- Play cancel sound on all clients
+-- Plays cancel sound on all clients
 RegisterServerEvent("Fire-EMS-Pager:CancelPage")
 AddEventHandler("Fire-EMS-Pager:CancelPage", function(Tones, HasDetails, Details)
 	TriggerClientEvent("Fire-EMS-Pager:CancelPage", -1, Tones, HasDetails, Details)
@@ -22,8 +47,8 @@ end)
 
 -- Play fire siren on all clients
 RegisterServerEvent("Fire-EMS-Pager:SoundSirens")
-AddEventHandler("Fire-EMS-Pager:SoundSirens", function(Stations)
-	TriggerClientEvent("Fire-EMS-Pager:PlaySirens", -1, Stations)
+AddEventHandler("Fire-EMS-Pager:SoundSirens", function()
+	TriggerClientEvent("Fire-EMS-Pager:PlaySirens", -1)
 end)
 
 -- Whitelist check on server join
@@ -105,7 +130,6 @@ AddEventHandler("Fire-EMS-Pager:WhitelistCheck", function(Whitelist)
 		end
 	-- If using neither json, Ace, or disabled
 	else
-		-- Print error message to server console
 		print("===================================================================")
 		print("==============================WARNING==============================")
 		print("''" .. tostring(Whitelist.Enabled) .. "'' is not a valid Whitelist option.")

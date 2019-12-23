@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.52 Alpha
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.53 Alpha
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -67,8 +67,6 @@ Pager.Tones = Config.Tones
 
 -- Local Fire Siren Variables
 local FireSiren = {}
--- Is a fire siren currently being paged
-FireSiren.Enabled = false
 -- Stations that currently have a fire siren being played
 FireSiren.EnabledStations = {}
 -- Fire Station Variables
@@ -317,41 +315,44 @@ end)
 -- Used to play a fire siren at a specific station/s
 RegisterCommand("firesiren", function(Source, Args)
 	if Whitelist.Command.firesiren then
-		if not FireSiren.Enabled then
-			local ToBeSirened = {}
-			-- Loop though all the stations provided in the command
-			for _, ProvidedStation in ipairs(Args) do
-				-- Loop through all the valid stations
-				for _, ValidStation in ipairs(FireSiren.Stations) do
-					-- If a provided station matches a valid station
-					if ProvidedStation:lower() == ValidStation.Name then
+		local ToBeSirened = {}
+		-- Loop though all the stations provided in the command
+		for _, ProvidedStation in ipairs(Args) do
+			-- Loop through all the valid stations
+			for _, ValidStation in ipairs(FireSiren.Stations) do
+				-- If a provided station matches a valid station
+				if ProvidedStation:lower() == ValidStation.Name then
+					-- If station is not already playing a siren
+					if not FireSiren.EnabledStations[ProvidedStation:lower()] then
 						ValidStation.x, ValidStation.y, ValidStation.z = table.unpack(ValidStation.Loc)
 						table.insert(ToBeSirened, ValidStation)
+						-- Station is already playing a siren
+					else
+						NewNoti("~r~~h~One or more stations provided are already sounding!", true)
+						return
 					end
 				end
 			end
+		end
 
-			-- If the number of originally provided stations matches
-			-- the number of stations, and there where stations acutally
-			-- provided in the first place
-			if not #Args ~= #ToBeSirened and #Args ~= 0 then
-				-- Create a temporary variable to add more text to
-				local NotificationText = "~g~Sounding:~y~"
-				-- Loop though all stations
-				for _, Station in ipairs(ToBeSirened) do
-					-- Add station to temporary variable
-					NotificationText = NotificationText .. " " .. Station.Name:upper()
-				end
-				NewNoti(NotificationText, false)
-				-- Bounces stations off of server
-				TriggerServerEvent("Fire-EMS-Pager:SoundSirens", ToBeSirened)
-			-- If there is a mismatch, i.e. invalid/no stations/s provided
-			else
-				NewNoti("~r~~h~Invalid stations for sounding, please check your command arguments.", true)
+		-- If the number of originally provided stations matches
+		-- the number of stations, and there where stations acutally
+		-- provided in the first place
+		if not #Args ~= #ToBeSirened and #Args ~= 0 then
+			-- Create a temporary variable to add more text to
+			local NotificationText = "~g~Sounding:~y~"
+			-- Loop though all stations
+			for _, Station in ipairs(ToBeSirened) do
+				TriggerServerEvent("Fire-EMS-Pager:StoreSiren", Station)
+				-- Add station to temporary variable
+				NotificationText = NotificationText .. " " .. Station.Name:upper()
 			end
-		-- If sirens are already being sounded
+			NewNoti(NotificationText, false)
+			Citizen.Wait(2000)
+			TriggerServerEvent("Fire-EMS-Pager:SoundSirens", ToBeSirened)
+		-- If there is a mismatch, i.e. invalid/no stations/s provided
 		else
-			NewNoti("~r~~h~Sirens are already being sounded!", true)
+			NewNoti("~r~~h~Invalid stations for sounding, please check your command arguments.", true)
 		end
 	-- If player is not whitelisted
 	else
@@ -531,25 +532,16 @@ AddEventHandler("Fire-EMS-Pager:PlayTones", function(Tones, HasDetails, Details)
 
 				-- If player is tuned to this tone
 				if Tuned then
-					SendNUIMessage({
-						PayloadType	= "PlayTone",
-						Payload	= "vibrate"
-					})
+					TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "PlayTone", "vibrate")
 					NewNoti("~h~~y~" .. Tone:upper() ..  " call!", true)
 				-- If player is not tuned to it
 				else
-					SendNUIMessage({
-						PayloadType	= "PlayTone",
-						Payload	= Tone
-					})
+					TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "PlayTone", Tone)
 				end
 				Citizen.Wait(Pager.WaitTime)
 			end
 
-			SendNUIMessage({
-				PayloadType = "PlayTone",
-				Payload = "end"
-			})
+			TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "PlayTone", "end")
 
 			local Hours = GetClockHours()
 			local Minutes = GetClockMinutes()
@@ -623,25 +615,10 @@ end)
 
 -- Play fire sirens
 RegisterNetEvent("Fire-EMS-Pager:PlaySirens")
-AddEventHandler("Fire-EMS-Pager:PlaySirens", function(Stations)
-	FireSiren.Enabled = true
-
-	-- Loop though all stations
-	for _, Station in ipairs(Stations) do
-		Station.Loc = vector3(Station.x, Station.y, Station.z)
-		-- Insert temporary array into enabled stations
-		table.insert(FireSiren.EnabledStations, Station)
+AddEventHandler("Fire-EMS-Pager:PlaySirens", function()
+	for _, Station in pairs(FireSiren.EnabledStations) do
+		TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "PlaySiren", {Station.Name, Station.ID})
 	end
-
-	Citizen.Wait(1000)
-
-	SendNUIMessage({
-		PayloadType = "PlaySiren"
-	})
-
-	Citizen.Wait(51000)
-
-	FireSiren.Enabled = false
 end)
 
 -- Plays cancelpage sound on the client
@@ -668,10 +645,7 @@ AddEventHandler("Fire-EMS-Pager:CancelPage", function(Tones, HasDetails, Details
 			NewNoti("~g~~h~Your pager activates!", true)
 			Citizen.Wait(1500)
 
-			SendNUIMessage({
-				PayloadType     = "PlayTone",
-				Payload     = "cancel"
-			})
+			TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "PlayTone", "cancel")
 
 			if HasDetails then
 				local NewDetails = ""
@@ -714,6 +688,29 @@ AddEventHandler("Fire-EMS-Pager:CancelPage", function(Tones, HasDetails, Details
 	Pager.Paging = false
 end)
 
+RegisterNUICallback("RemoveSiren", function(Station)
+	-- If the client is the owner of this fire siren, remove fire siren
+	-- This check is done so only one event is sent to the server instead of 32+
+	if GetPlayerServerId(PlayerId()) == Station.ID then
+		TriggerServerEvent("Fire-EMS-Pager:RemoveSiren", Station.Name)
+	end
+
+	FireSiren.EnabledStations[Station.Name] = nil
+end)
+
+-- Bounce between server script and client script
+RegisterNetEvent("Fire-EMS-Pager:Bounce:ServerValues")
+AddEventHandler("Fire-EMS-Pager:Bounce:ServerValues", function(Sirens) FireSiren.EnabledStations = Sirens end)
+
+-- Bounce between server & client script and client NUI
+RegisterNetEvent("Fire-EMS-Pager:Bounce:NUI")
+AddEventHandler("Fire-EMS-Pager:Bounce:NUI", function(Type, Load)
+	SendNUIMessage({
+		PayloadType	= Type,
+		Payload		= Load
+	})
+end)
+
 -- Draws notification on client's screen
 function NewNoti(Text, Flash)
 	if not Config.DisableAllMessages then
@@ -726,45 +723,36 @@ function NewNoti(Text, Flash)
 	end
 end
 
--- Resource master loop
+-- Volume loop
+-- Sets the volumes of all active fire sirens
 Citizen.CreateThread(function()
 	while true do
 		Citizen.Wait(0)
 
-		if FireSiren.Enabled then
-			-- Get player position
-			local pP = GetEntityCoords(GetPlayerPed(-1), false)
-			local StationDistances = {}
+		local FireSirenCount = 0
+		for _, _ in pairs(FireSiren.EnabledStations) do FireSirenCount = FireSirenCount + 1 end
 
-			-- Loop though all valid stations
-			for _, Station in ipairs(FireSiren.Stations) do
-				-- Calculate distance between player and station
-				local Distance = GetDistanceBetweenCoords(pP.x, pP.y, pP.z, Station.Loc.x, Station.Loc.y, Station.Loc.z, true)
-				-- Insert distance into temporary array
-				table.insert(StationDistances, {Name = Station.Name, Distance = Distance + 0.01}) -- Stops divide by 0 errors
-			end
-			-- Sort array so the closest station to the player is first
-			table.sort(StationDistances, function(A, B) return A.Distance < B.Distance end)
-			-- Loop though all enabled stations
-			for _, Station in ipairs(FireSiren.EnabledStations) do
-				-- If the closest station to the player is an enabled station
-				if StationDistances[1].Name == Station.Name then
-					-- If the distance to the closest station is within the fire siren radius
-					if (StationDistances[1].Distance <= Station.Radius) then
-						-- Volume is equal to 1 (max volume) mius the distance to the nearest station from the player
-						-- divided the radius of the fire siren
-						-- New NUI message
-						SendNUIMessage({
-							PayloadType	= "SetSirenVolume",
-							volume = 1 - (StationDistances[1].Distance / Station.Radius)
-						})
-					-- If the cloest station is out of the radius of the fire siren
-					else
-						SendNUIMessage({
-							PayloadType	= "SetSirenVolume",
-							volume = 0
-						})
+		if FireSirenCount >= 1 then
+			local PlayerPed = PlayerPedId()
+			local PlayerCoords = GetEntityCoords(PlayerPed, false)
+
+			for _, Station in pairs(FireSiren.EnabledStations) do
+				local Distance = Vdist(PlayerCoords.x, PlayerCoords.y, PlayerCoords.z, Station.x, Station.y, Station.z) + 0.01 -- Stops divide by 0 errors
+				if (Distance <= Station.Radius) then
+
+					local SirenVolume = 1 - (Distance / Station.Radius)
+					if IsPedInAnyVehicle(PlayerPedId(), false) then
+						local VC = GetVehicleClass(GetVehiclePedIsIn(PlayerPedId()), false)
+						-- If vehicle is not a motobike or a bicycle
+						if VC ~= 8 or VC ~= 13 then
+							-- Lower the alarm volume by 45%
+							SirenVolume = SirenVolume * 0.45
+						end
 					end
+
+					TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "SetSirenVolume", {Station.Name, SirenVolume})
+				else
+					TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "SetSirenVolume", {Station.Name, 0})
 				end
 			end
 		end
