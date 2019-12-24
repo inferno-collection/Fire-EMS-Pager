@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.53 Alpha
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.54 Alpha
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -38,14 +38,14 @@ Config.Tones = {"medical", "rescue", "fire", "other"}
 -- List of stations fire sirens can be played at, read the wiki page below to learn how to add more
 -- https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-stations
 Config.Stations = {} -- Do not edit this line
-table.insert(Config.Stations, {Name = "pb", Loc = vector3(-379.53, 6118.32, 31.85), Radius = 800}) -- Paleto Bay
-table.insert(Config.Stations, {Name = "fz", Loc = vector3(-2095.92, 2830.22, 32.96), Radius = 600}) -- Fort Zancudo
-table.insert(Config.Stations, {Name = "ss", Loc = vector3(1691.24, 3585.83, 35.62), Radius = 500}) -- Sandy Shores
-table.insert(Config.Stations, {Name = "rh", Loc = vector3(-635.09, -124.29, 39.01), Radius = 400}) -- Rockford Hills
-table.insert(Config.Stations, {Name = "els", Loc = vector3(1193.42, -1473.72, 34.86), Radius = 400}) -- East Los Santos
-table.insert(Config.Stations, {Name = "sls", Loc = vector3(199.83, -1643.38, 29.8), Radius = 400}) -- South Los Santos
-table.insert(Config.Stations, {Name = "dpb", Loc = vector3(-1183.13, -1773.91, 4.05), Radius = 400}) -- Del Perro Beach
-table.insert(Config.Stations, {Name = "lsia", Loc = vector3(-1068.74, -2379.96, 14.05), Radius = 500}) -- LSIA
+table.insert(Config.Stations, {Name = "pb", Loc = vector3(-379.53, 6118.32, 31.85), Radius = 800, Siren = "siren1"}) -- Paleto Bay
+table.insert(Config.Stations, {Name = "fz", Loc = vector3(-2095.92, 2830.22, 32.96), Radius = 1000, Siren = "siren2"}) -- Fort Zancudo
+table.insert(Config.Stations, {Name = "ss", Loc = vector3(1691.24, 3585.83, 35.62), Radius = 500, Siren = "siren1"}) -- Sandy Shores
+table.insert(Config.Stations, {Name = "rh", Loc = vector3(-635.09, -124.29, 39.01), Radius = 400, Siren = "siren1"}) -- Rockford Hills
+table.insert(Config.Stations, {Name = "els", Loc = vector3(1193.42, -1473.72, 34.86), Radius = 400, Siren = "siren1"}) -- East Los Santos
+table.insert(Config.Stations, {Name = "sls", Loc = vector3(199.83, -1643.38, 29.8), Radius = 400, Siren = "siren1"}) -- South Los Santos
+table.insert(Config.Stations, {Name = "dpb", Loc = vector3(-1183.13, -1773.91, 4.05), Radius = 400, Siren = "siren1"}) -- Del Perro Beach
+table.insert(Config.Stations, {Name = "lsia", Loc = vector3(-1068.74, -2379.96, 14.05), Radius = 500, Siren = "siren2"}) -- LSIA
 
 --
 --		Nothing past this point needs to be edited, all the settings for the resource are found ABOVE this line.
@@ -97,6 +97,7 @@ AddEventHandler("onClientResourceStart", function (ResourceName)
 			for i in pairs(Whitelist.Command) do
 				Whitelist.Command[i] = true
 			end
+
 			Whitelist.Command.pagerwhitelist = false
 		end
 	end
@@ -151,6 +152,7 @@ AddEventHandler("onClientMapStart", function()
 		for i in pairs(Whitelist.Command) do
 			Whitelist.Command[i] = true
 		end
+
 		Whitelist.Command.pagerwhitelist = false
 	end
 
@@ -600,16 +602,13 @@ AddEventHandler("Fire-EMS-Pager:PlayTones", function(Tones, HasDetails, Details)
 
 			Citizen.Wait(1500)
 		end
-
-		Citizen.Wait(3000)
 	else
 		for _, _ in ipairs(Tones) do
 			Citizen.Wait(Pager.WaitTime)
 		end
-
-		Citizen.Wait(3000)
 	end
 
+	Citizen.Wait(3000)
 	Pager.Paging = false
 end)
 
@@ -617,7 +616,7 @@ end)
 RegisterNetEvent("Fire-EMS-Pager:PlaySirens")
 AddEventHandler("Fire-EMS-Pager:PlaySirens", function()
 	for _, Station in pairs(FireSiren.EnabledStations) do
-		TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "PlaySiren", {Station.Name, Station.ID})
+		TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "PlaySiren", {Station.Name, Station.ID, Station.Siren})
 	end
 end)
 

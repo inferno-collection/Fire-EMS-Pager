@@ -1,5 +1,5 @@
 <!--
-Inferno Collection Fire/EMS Pager + Fire Siren Version 4.53 Alpha
+Inferno Collection Fire/EMS Pager + Fire Siren Version 4.54 Alpha
 
 Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 
@@ -34,7 +34,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 					} else if (event.data.PayloadType == "PlaySiren") {
 						if (!FireSirens[event.data.Payload[0]]) {
-							FireSirens[event.data.Payload[0]] = new Audio("./sounds/firesiren.mp3");
+							FireSirens[event.data.Payload[0]] = new Audio("./sounds/" + event.data.Payload[2] + ".mp3");
 							// Set volume to 0 assuming it will be updated in the next few frames
 							FireSirens[event.data.Payload[0]].volume = 0.0;
 							FireSirens[event.data.Payload[0]].play();
