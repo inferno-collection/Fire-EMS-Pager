@@ -1,5 +1,5 @@
 <!--
-Inferno Collection Fire/EMS Pager + Fire Siren Version 4.51
+Inferno Collection Fire/EMS Pager + Fire Siren Version 4.54 Beta
 
 Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 
@@ -22,36 +22,39 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <body>
 		<script type="text/javascript">
             $(function() {
-				// Initialize audio player variable
-				var siren = null;
+				var FireSirens = [];
+
 				// Wait to receive message from client script
 				window.addEventListener("message", function(event) {
-					// If client script wants a tone played
-					if (event.data.TransactionType == "PlayTone") {
-						// Initialize audio player variable
+					if (event.data.PayloadType == "PlayTone") {
 						var pager = null;
-						// Create a new player and load tone audio file
-						pager = new Audio("./sounds/" + event.data.TransactionFile + ".mp3");
-						// Set volume to max
+						pager = new Audio("./sounds/" + event.data.Payload + ".mp3");
 						pager.volume = 1.0;
-						// Play
 						pager.play();
-					// If client script wants siren played
-					} else if (event.data.TransactionType == "PlaySiren") {
-						// Create a new player and load fire siren audio file
-						siren = new Audio("./sounds/firesiren.mp3");
-						// Set volume to 0 assuming it will be updated in the next few frames
-						siren.volume = 0.0;
-						// Play
-						siren.play();
-					// If client script wants volume of siren set
-					} else if (event.data.TransactionType == "SetSirenVolume") {
-						if (siren != null) {
-							// Set volume
-							siren.volume = event.data.volume;
+
+					} else if (event.data.PayloadType == "PlaySiren") {
+						if (!FireSirens[event.data.Payload[0]]) {
+							FireSirens[event.data.Payload[0]] = new Audio("./sounds/" + event.data.Payload[2] + ".mp3");
+							// Set volume to 0 assuming it will be updated in the next few frames
+							FireSirens[event.data.Payload[0]].volume = 0.0;
+							FireSirens[event.data.Payload[0]].play();
+							FireSirens[event.data.Payload[0]].addEventListener("ended",function(){
+								// Send call back to remove siren
+								$.post("http://inferno-fire-ems-pager/RemoveSiren", JSON.stringify({
+									Name: event.data.Payload[0],
+									ID: event.data.Payload[1]
+								}));
+								FireSirens[event.data.Payload[0]] = null;
+							});
+						}
+
+					} else if (event.data.PayloadType == "SetSirenVolume") {
+						if (FireSirens[event.data.Payload[0]]) {
+							FireSirens[event.data.Payload[0]].volume = event.data.Payload[1];
 						}
 					}
 				});
+
 			});
         </script>
     </body>

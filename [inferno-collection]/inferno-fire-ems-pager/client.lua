@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.51
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.54 Beta
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -38,14 +38,14 @@ Config.Tones = {"medical", "rescue", "fire", "other"}
 -- List of stations fire sirens can be played at, read the wiki page below to learn how to add more
 -- https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-stations
 Config.Stations = {} -- Do not edit this line
-table.insert(Config.Stations, {Name = "pb", Loc = vector3(-379.53, 6118.32, 31.85), Radius = 800}) -- Paleto Bay
-table.insert(Config.Stations, {Name = "fz", Loc = vector3(-2095.92, 2830.22, 32.96), Radius = 600}) -- Fort Zancudo
-table.insert(Config.Stations, {Name = "ss", Loc = vector3(1691.24, 3585.83, 35.62), Radius = 500}) -- Sandy Shores
-table.insert(Config.Stations, {Name = "rh", Loc = vector3(-635.09, -124.29, 39.01), Radius = 400}) -- Rockford Hills
-table.insert(Config.Stations, {Name = "els", Loc = vector3(1193.42, -1473.72, 34.86), Radius = 400}) -- East Los Santos
-table.insert(Config.Stations, {Name = "sls", Loc = vector3(199.83, -1643.38, 29.8), Radius = 400}) -- South Los Santos
-table.insert(Config.Stations, {Name = "dpb", Loc = vector3(-1183.13, -1773.91, 4.05), Radius = 400}) -- Del Perro Beach
-table.insert(Config.Stations, {Name = "lsia", Loc = vector3(-1068.74, -2379.96, 14.05), Radius = 500}) -- LSIA
+table.insert(Config.Stations, {Name = "pb", Loc = vector3(-379.53, 6118.32, 31.85), Radius = 800, Siren = "siren1"}) -- Paleto Bay
+table.insert(Config.Stations, {Name = "fz", Loc = vector3(-2095.92, 2830.22, 32.96), Radius = 1000, Siren = "siren2"}) -- Fort Zancudo
+table.insert(Config.Stations, {Name = "ss", Loc = vector3(1691.24, 3585.83, 35.62), Radius = 500, Siren = "siren1"}) -- Sandy Shores
+table.insert(Config.Stations, {Name = "rh", Loc = vector3(-635.09, -124.29, 39.01), Radius = 400, Siren = "siren1"}) -- Rockford Hills
+table.insert(Config.Stations, {Name = "els", Loc = vector3(1193.42, -1473.72, 34.86), Radius = 400, Siren = "siren1"}) -- East Los Santos
+table.insert(Config.Stations, {Name = "sls", Loc = vector3(199.83, -1643.38, 29.8), Radius = 400, Siren = "siren1"}) -- South Los Santos
+table.insert(Config.Stations, {Name = "dpb", Loc = vector3(-1183.13, -1773.91, 4.05), Radius = 400, Siren = "siren1"}) -- Del Perro Beach
+table.insert(Config.Stations, {Name = "lsia", Loc = vector3(-1068.74, -2379.96, 14.05), Radius = 500, Siren = "siren2"}) -- LSIA
 
 --
 --		Nothing past this point needs to be edited, all the settings for the resource are found ABOVE this line.
@@ -67,8 +67,6 @@ Pager.Tones = Config.Tones
 
 -- Local Fire Siren Variables
 local FireSiren = {}
--- Is a fire siren currently being paged
-FireSiren.Enabled = false
 -- Stations that currently have a fire siren being played
 FireSiren.EnabledStations = {}
 -- Fire Station Variables
@@ -91,22 +89,15 @@ Whitelist.Command.cancelpage = false
 -- Boolean for whether player is whitelisted for pagerwhitelist command
 Whitelist.Command.pagerwhitelist = false
 
--- When the resource is started
 AddEventHandler("onClientResourceStart", function (ResourceName)
-	-- If the started resource is this resource
 	if(GetCurrentResourceName() == ResourceName) then
-		-- If the whitelisted is enabled
 		if Whitelist.Enabled then
-			-- Pass whitelist object to server for updating
 			TriggerServerEvent("Fire-EMS-Pager:WhitelistCheck", Whitelist)
-		-- If whitelist is not enabled
 		else
-			-- Loop through all commands
 			for i in pairs(Whitelist.Command) do
-				-- Grant players all permissions
 				Whitelist.Command[i] = true
 			end
-			-- Override whitelist permission
+
 			Whitelist.Command.pagerwhitelist = false
 		end
 	end
@@ -114,7 +105,6 @@ end)
 
 -- On client join server
 AddEventHandler("onClientMapStart", function()
-	-- If chat suggestions are enabled
 	if Config.ChatSuggestions then
 		-- Create a temporary variables to add more text to
 		local ValidTones = "Valid tones:"
@@ -132,47 +122,37 @@ AddEventHandler("onClientMapStart", function()
 			ValidStations = ValidStations .. " " .. Station.Name
 		end
 
-		-- Add /pager suggestion and include all valid tones
 		TriggerEvent("chat:addSuggestion", "/pager", "From already being tuned, will turn off Pager. From the pager being off, enter tones to be tuned to, or if already tuned, tones to be retuned to. Put a space between each tone.", {
 			{ name = "tone", help = ValidTones }
 		})
 
-		-- Add /page suggestion, include all valid tones, and call details help
 		TriggerEvent("chat:addSuggestion", "/page", "If no other tones are currently being paged, will page entered tones. Put a space between each tone.", {
 			{ name = "tones", help = ValidTones },
 			{ name = "- call details", help = "To add optional details, add a space after the last tone, then a '-', then another space, then your details. For example: /page fire medical - Your Details Go Here" }
 		})
 
-		-- Add /cancelpage suggestion, include all valid tones, and disregard details help
 		TriggerEvent("chat:addSuggestion", "/cancelpage", "Plays cancel tone for selected tones, and shows disregard notification.", {
 			{ name = "tones", help = ValidTones },
 			{ name = "- disregard details", help = "To add optional disregard details, add a space after the last tone, then a '-', then another space, then your details. For example: /cancelpage fire medical - Your Disregard Details Go Here" }
 		})
 
-		-- Add /firesiren suggestion and include all valid stations
 		TriggerEvent("chat:addSuggestion", "/firesiren", "If no other sirens are currently being sounded, will page fire siren at entered stations. Put a space between each station.", {
 			{ name = "stations", help = ValidStations }
 		})
 
-		-- Add /pagerwhitelist suggestion and include help
 		TriggerEvent("chat:addSuggestion", "/pagerwhitelist", "Add to, and/or reload the command whitelist.", {
 			{ name = "{reload} or {player hex/server id}", help = "Type 'reload' to reload the current whitelist, or if you are adding to the whitelist, type out the player's steam hex, or put the player's server ID from the player list." },
 			{ name = "commands", help = "List all the commands you want this person to have access to."}
 		})
 	end
 
-	-- If the whitelisted is enabled
 	if Whitelist.Enabled then
-		-- Pass whitelist object to server for updating
 		TriggerServerEvent("Fire-EMS-Pager:WhitelistCheck", Whitelist)
-	-- If whitelist is not enabled
 	else
-		-- Loop through all commands
 		for i in pairs(Whitelist.Command) do
-			-- Grant players all permissions
 			Whitelist.Command[i] = true
 		end
-		-- Override whitelist permission
+
 		Whitelist.Command.pagerwhitelist = false
 	end
 
@@ -201,16 +181,13 @@ end)
 -- Forces a whitelist reload on the client
 RegisterNetEvent("Fire-EMS-Pager:WhitelistRecheck")
 AddEventHandler("Fire-EMS-Pager:WhitelistRecheck", function()
-	-- Ask the server for client's lastest whitelist status
 	TriggerServerEvent("Fire-EMS-Pager:WhitelistCheck", Whitelist)
 end)
 
 -- /pager command
 -- Used to enable and disable pager, and set tones to be tuned to
 RegisterCommand("pager", function(Source, Args)
-	-- Check if the player is whitelisted to use this command
 	if Whitelist.Command.pager then
-		-- pager function, called only from this command
 		function EnablePager()
 			-- Loop though all the tones provided by the client
 			for _, ProvidedTone in ipairs(Args) do
@@ -235,46 +212,36 @@ RegisterCommand("pager", function(Source, Args)
 					-- Add them to the temporary variable
 					NotificationText = NotificationText .. " " .. Tone:upper()
 				end
-				-- Draw new notification on client's screen
 				NewNoti(NotificationText, false)
 				-- Locally anable the client's pager
 				Pager.Enabled = true
 			-- If there is a mismatch, i.e. invalid/no tone/s provided
 			else
-				-- Draw new notification on client's screen
 				NewNoti("~r~~h~Invalid tones, please check your command arguments.", true)
 				-- Ensure the client's pager is locally disabled
 				Pager.Enabled = false
-				-- Clear list of tones to be tuned to
 				Pager.TunedTo = {}
 			end
 		end
 
-		-- If pager is currently off
 		if not Pager.Enabled then
-			-- Attempt to enable pager
 			EnablePager()
-		-- If pager is disabled
 		else
 			-- If there are tones provided
 			if #Args ~= 0 then
 				-- Clear list of currently tuned tones to avoid duplicates
 				Pager.TunedTo = {}
-				-- Attempt to enable pager
 				EnablePager()
 			-- If no tones where provided, and they just want it turned off
 			else
-				-- Draw new notification on client's screen
 				NewNoti("~g~Pager turned off.", false)
 				-- Ensure the client's pager is locally disabled
 				Pager.Enabled = false
-				-- Clear list of tones to be tuned to
 				Pager.TunedTo = {}
 			end
 		end
 	-- If player is not whitelisted
 	else
-		-- Draw error message on player screen
 		NewNoti("~r~You are not whitelisted for this command.", true)
 	end
 end)
@@ -282,14 +249,10 @@ end)
 -- /page command
 -- Used to page out a tone/s
 RegisterCommand("page", function(Source, Args)
-	-- Number of provided tones
 	local ToneCount = 0
-	-- Whether the arguments has details or not
 	local HasDetails = false
-	-- Local array to store tones to be paged
 	local ToBePaged = {}
 
-	-- Check if the player is whitelisted to use this command
 	if Whitelist.Command.page then
 		-- If tones are not already being paged
 		if not Pager.Paging then
@@ -301,11 +264,9 @@ RegisterCommand("page", function(Source, Args)
 					if ProvidedTone:lower() == ValidTone then
 						-- Add it to the list of tones to be paged
 						table.insert(ToBePaged, ValidTone)
-						-- No need to keep searching for this tone
 						break
 					-- Checks for the separator character
 					elseif ProvidedTone:lower() == Config.PageSep then
-						-- Set true, used for checking and loop breaking
 						HasDetails = true
 						-- Counts up to the number of valid tones provided
 						-- plus 1, to include the separator
@@ -313,16 +274,15 @@ RegisterCommand("page", function(Source, Args)
 							-- Remove tones from arguments to leave only details
 							table.remove(Args, 1)
 						end
-						-- Break from loop
+
 						break
 					end
 				end
-				-- If a break is needed
+
 				if HasDetails then
-					-- Break from loop
 					break
 				end
-				-- Increase count
+
 				ToneCount = ToneCount + 1
 			end
 
@@ -337,23 +297,18 @@ RegisterCommand("page", function(Source, Args)
 					-- Add a tone to temporary string
 					NotificationText = NotificationText .. " " .. Tone:upper()
 				end
-				-- Draw new notification on client's screen
 					NewNoti(NotificationText, false)
 				-- Bounces tones off of server
 				TriggerServerEvent("Fire-EMS-Pager:PageTones", ToBePaged, HasDetails, Args)
 			-- If there is a mismatch, i.e. invalid/no tone/s provided
 			else
-				-- Draw new notification on client's screen
 				NewNoti("~r~~h~Invalid tones, please check your command arguments.", true)
 			end
-		-- If tones are already being paged
 		else
-			-- Draw new notification on client's screen
 			NewNoti("~r~~h~Tones are already being paged.", true)
 		end
 	-- If player is not whitelisted
 	else
-		-- Draw error message on player screen
 		NewNoti("~r~You are not whitelisted for this command.", true)
 	end
 end)
@@ -361,52 +316,48 @@ end)
 -- /firesiren command
 -- Used to play a fire siren at a specific station/s
 RegisterCommand("firesiren", function(Source, Args)
-	-- Check if the player is whitelisted to use this command
 	if Whitelist.Command.firesiren then
-		-- If fire sirens are not already being sounded
-		if not FireSiren.Enabled then
-			-- Local array to store stations to be sounded
-			local ToBeSirened = {}
-			-- Loop though all the stations provided in the command
-			for _, ProvidedStation in ipairs(Args) do
-				-- Loop through all the valid stations
-				for _, ValidStation in ipairs(FireSiren.Stations) do
-					-- If a provided station matches a valid station
-					if ProvidedStation:lower() == ValidStation.Name then
+		local ToBeSirened = {}
+		-- Loop though all the stations provided in the command
+		for _, ProvidedStation in ipairs(Args) do
+			-- Loop through all the valid stations
+			for _, ValidStation in ipairs(FireSiren.Stations) do
+				-- If a provided station matches a valid station
+				if ProvidedStation:lower() == ValidStation.Name then
+					-- If station is not already playing a siren
+					if not FireSiren.EnabledStations[ProvidedStation:lower()] then
 						ValidStation.x, ValidStation.y, ValidStation.z = table.unpack(ValidStation.Loc)
 						table.insert(ToBeSirened, ValidStation)
+						-- Station is already playing a siren
+					else
+						NewNoti("~r~~h~One or more stations provided are already sounding!", true)
+						return
 					end
 				end
 			end
+		end
 
-			-- If the number of originally provided stations matches
-			-- the number of stations, and there where stations acutally
-			-- provided in the first place
-			if not #Args ~= #ToBeSirened and #Args ~= 0 then
-				-- Create a temporary variable to add more text to
-				local NotificationText = "~g~Sounding:~y~"
-				-- Loop though all stations
-				for _, Station in ipairs(ToBeSirened) do
-					-- Add station to temporary variable
-					NotificationText = NotificationText .. " " .. Station.Name:upper()
-				end
-				-- Draw new notification on client's screen
-				NewNoti(NotificationText, false)
-				-- Bounces stations off of server
-				TriggerServerEvent("Fire-EMS-Pager:SoundSirens", ToBeSirened)
-			-- If there is a mismatch, i.e. invalid/no stations/s provided
-			else
-				-- Draw new notification on client's screen
-				NewNoti("~r~~h~Invalid stations for sounding, please check your command arguments.", true)
+		-- If the number of originally provided stations matches
+		-- the number of stations, and there where stations acutally
+		-- provided in the first place
+		if not #Args ~= #ToBeSirened and #Args ~= 0 then
+			-- Create a temporary variable to add more text to
+			local NotificationText = "~g~Sounding:~y~"
+			-- Loop though all stations
+			for _, Station in ipairs(ToBeSirened) do
+				TriggerServerEvent("Fire-EMS-Pager:StoreSiren", Station)
+				-- Add station to temporary variable
+				NotificationText = NotificationText .. " " .. Station.Name:upper()
 			end
-		-- If sirens are already being sounded
+			NewNoti(NotificationText, false)
+			Citizen.Wait(2000)
+			TriggerServerEvent("Fire-EMS-Pager:SoundSirens", ToBeSirened)
+		-- If there is a mismatch, i.e. invalid/no stations/s provided
 		else
-			-- Draw new notification on client's screen
-			NewNoti("~r~~h~Sirens are already being sounded!", true)
+			NewNoti("~r~~h~Invalid stations for sounding, please check your command arguments.", true)
 		end
 	-- If player is not whitelisted
 	else
-		-- Draw error message on player screen
 		NewNoti("~r~You are not whitelisted for this command.", true)
 	end
 end)
@@ -414,16 +365,11 @@ end)
 -- /cancelpage command
 -- Used to play a sound to signal a canceled call
 RegisterCommand("cancelpage", function(Source, Args)
-	-- Temporary Variable to count provided tones
 	local ToneCount = 0
-	-- Whether the arguments has details or not
 	local HasDetails = false
-	-- Local array to store tones to be paged
 	local ToBeCanceled = {}
 
-	-- Check if the player is whitelisted to use this command
 	if Whitelist.Command.cancelpage then
-		-- If tones are not already being paged
 		if not Pager.Paging then
 			-- Loop though all the tones provided in the command
 			for _, ProvidedTone in ipairs(Args) do
@@ -433,11 +379,9 @@ RegisterCommand("cancelpage", function(Source, Args)
 					if ProvidedTone:lower() == ValidTone then
 						-- Add it to the list of tones to be paged
 						table.insert(ToBeCanceled, ValidTone)
-						-- No need to keep searching for this tone
 						break
 					-- Checks for the separator character
 					elseif ProvidedTone:lower() == Config.PageSep then
-						-- Set true, used for checking and loop breaking
 						HasDetails = true
 						-- Counts up to the number of valid tones provided
 						-- plus 1, to include the separator
@@ -445,16 +389,15 @@ RegisterCommand("cancelpage", function(Source, Args)
 							-- Remove tones from arguments to leave details
 							table.remove(Args, 1)
 						end
-						-- Break from loop
+
 						break
 					end
 				end
-				-- If a break is needed
+
 				if HasDetails then
-					-- Break from loop
 					break
 				end
-				-- Increase count
+
 				ToneCount = ToneCount + 1
 			end
 
@@ -469,23 +412,19 @@ RegisterCommand("cancelpage", function(Source, Args)
 					-- Add a tone to temporary string
 					NotificationText = NotificationText .. " " .. Tone:upper()
 				end
-				-- Draw new notification on client's screen
 					NewNoti(NotificationText, false)
 				-- Bounces tones off of server
 				TriggerServerEvent("Fire-EMS-Pager:CancelPage", ToBeCanceled, HasDetails, Args)
 			-- If there is a mismatch, i.e. invalid/no tone/s provided
 			else
-				-- Draw new notification on client's screen
 				NewNoti("~r~~h~Invalid tones, please check your command arguments.", true)
 			end
 		-- If tones are already being paged
 		else
-			-- Draw new notification on client's screen
 			NewNoti("~r~~h~Tones are being paged, please wait.", true)
 		end
 	-- If player is not whitelisted
 	else
-		-- Draw error message on player screen
 		NewNoti("~r~You are not whitelisted for this command.", true)
 	end
 end)
@@ -493,29 +432,22 @@ end)
 -- /pagerwhitelist
 -- Reload, and/or add someone to the whitelist
 RegisterCommand("pagerwhitelist", function(Source, Args)
-	-- Check if the player is whitelisted to use this command
 	if Whitelist.Command.pagerwhitelist then
 		-- If the first argument is defined and is equal to "reload"
 		if Args[1] and Args[1]:lower() == "reload" then
 			-- Tell server to reload the whitelist on all clients
 			TriggerServerEvent("Fire-EMS-Pager:WhitelistReload")
-			-- Draw message on player screen
 			NewNoti("~g~Whitelist reload complete.", true)
-		-- Else if only the first argument is set
 		elseif Args[1] then
 			-- Temporary variable for steam hex
 			local ID
 			-- Temporary whitelist entry variables
 			local Entry = {}
-			-- Declaring pager as a valid command
+			-- Declaring valid commands
 			Entry.pager = "pending"
-			-- Declaring page as a valid command
 			Entry.page = "pending"
-			-- Declaring firesiren as a valid command
 			Entry.firesiren = "pending"
-			-- Declaring cancelpage as a valid command
 			Entry.cancelpage = "pending"
-			-- Declaring pagerwhitelist as a valid command
 			Entry.pagerwhitelist = "pending"
 
 			-- If the first argument is a number
@@ -552,7 +484,6 @@ RegisterCommand("pagerwhitelist", function(Source, Args)
 
 			-- Tell the server to add the new entry to the whitelist and reload
 			TriggerServerEvent("Fire-EMS-Pager:WhitelistAdd", ID, Entry)
-			-- Positive feedback
 			NewNoti("~g~" .. ID .. " Added to whitelist successfully.", true)
 		-- If first argument not set
 		else
@@ -560,7 +491,6 @@ RegisterCommand("pagerwhitelist", function(Source, Args)
 		end
 	-- If player is not whitelisted
 	else
-		-- Draw error message on player screen
 		NewNoti("~r~You are not whitelisted for this command.", true)
 	end
 end)
@@ -568,14 +498,10 @@ end)
 -- Plays tones on the client
 RegisterNetEvent("Fire-EMS-Pager:PlayTones")
 AddEventHandler("Fire-EMS-Pager:PlayTones", function(Tones, HasDetails, Details)
-	-- Temporary boolean variable
 	local NeedToPlay = false
-	-- Temporary variable
 	local Tuned
-	-- Stop tones being paged over the top of others
 	Pager.Paging = true
 
-	-- If the pager is enabled, if not, ignore
 	if Pager.Enabled then
 		-- Loop though all tones that need to be paged
 		for _, Tone in ipairs(Tones) do
@@ -591,9 +517,7 @@ AddEventHandler("Fire-EMS-Pager:PlayTones", function(Tones, HasDetails, Details)
 
 		-- If the player is tuned to one or more of the tones being paged
 		if NeedToPlay then
-			-- Draw new notification on client's screen
 			NewNoti("~g~~h~Your pager activates!", true)
-			-- Short pause before tones are played
 			Citizen.Wait(1500)
 			-- Loop though all tones that need to be paged
 			for _, Tone in ipairs(Tones) do
@@ -610,58 +534,32 @@ AddEventHandler("Fire-EMS-Pager:PlayTones", function(Tones, HasDetails, Details)
 
 				-- If player is tuned to this tone
 				if Tuned then
-					-- New NUI message
-					SendNUIMessage({
-						-- Tell the NUI a tone needs to be played
-						TransactionType	= "PlayTone",
-						-- Provide vibration tone
-						TransactionFile	= "vibrate"
-					})
-					-- Draw new notification on client's screen
+					TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "PlayTone", "vibrate")
 					NewNoti("~h~~y~" .. Tone:upper() ..  " call!", true)
 				-- If player is not tuned to it
 				else
-					-- New NUI message
-					SendNUIMessage({
-						-- Tell the NUI a tone needs to be played
-						TransactionType	= "PlayTone",
-						-- Provide the tone
-						TransactionFile	= Tone
-					})
+					TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "PlayTone", Tone)
 				end
-				-- Wait time between tones
 				Citizen.Wait(Pager.WaitTime)
 			end
 
-			-- New NUI message
-			SendNUIMessage({
-				-- Tell the NUI a tone needs to be played
-				TransactionType     = "PlayTone",
-				-- Provide ending beeps
-				TransactionFile     = "end"
-			})
+			TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "PlayTone", "end")
 
-			-- Temporary variable for hours
 			local Hours = GetClockHours()
-			-- Temporary variable for minutes
 			local Minutes = GetClockMinutes()
 
-			-- If hours are less than or equal to 9
 			if Hours <= 9 then
 				-- Add a 0 infront
 				Hours = "0" .. tostring(Hours)
 			end
-			-- If minutes are less than or equal to 9
+
 			if Minutes <= 9 then
 				-- Add a 0 infront
 				Minutes = "0" .. tostring(Minutes)
 			end
 
-			-- If a details was included
 			if HasDetails then
-				-- Create a temporary variable for details
 				local NewDetails = ""
-				-- Create a temporary variable for tones
 				local NewTones = ""
 
 				-- Loop though details (each word is an element)
@@ -680,84 +578,54 @@ AddEventHandler("Fire-EMS-Pager:PlayTones", function(Tones, HasDetails, Details)
 
 				-- Send message to chat, only people tuned to specified tones can see the message
 				TriggerEvent("chat:addMessage", {
-					-- Use page template
 					templateId = "page",
-					-- "Fire Control" in red
+					-- Red
 					color = { 255, 0, 0},
-					-- Allow multiline
 					multiline = true,
-					-- Message
 					args = {"Fire Control", "\nAttention " .. Config.DeptName .. " - " .. NewDetails .. " - " .. NewTones .. "Emergency.\n\nTimeout " .. Hours .. Minutes.. "."}
 				})
 			-- If no details provided
 			else
 				-- Send message to chat, only people tuned to specified tones can see the message
 				TriggerEvent("chat:addMessage", {
-					-- Use page template
 					templateId = "page",
-					-- "Fire Control" in red
+					-- Red
 					color = { 255, 0, 0},
-					-- Allow multiline
 					multiline = true,
-					-- Message
 					args = {"Fire Control", "\nAttention " .. Config.DeptName .. " - " .. Config.DefaultDetails .. ".\n\nTimeout " .. Hours .. Minutes.. "."}
 				})
 			end
 		else
-			-- Wait same amount of time
-			for _, Tone in ipairs(Tones) do
+			for _, _ in ipairs(Tones) do
 				Citizen.Wait(Pager.WaitTime)
 			end
+
 			Citizen.Wait(1500)
 		end
-		-- Wait for sound to finish
-		Citizen.Wait(3000)
 	else
-		-- Wait same amount of time
 		for _, _ in ipairs(Tones) do
 			Citizen.Wait(Pager.WaitTime)
 		end
-		Citizen.Wait(3000)
 	end
-	-- Allow more tones to be paged
+
+	Citizen.Wait(3000)
 	Pager.Paging = false
 end)
 
 -- Play fire sirens
 RegisterNetEvent("Fire-EMS-Pager:PlaySirens")
-AddEventHandler("Fire-EMS-Pager:PlaySirens", function(Stations)
-	-- Stop sirens being paged over the top of others
-	FireSiren.Enabled = true
-
-	-- Loop though all stations
-	for _, Station in ipairs(Stations) do
-		Station.Loc = vector3(Station.x, Station.y, Station.z)
-		-- Insert temporary array into enabled stations
-		table.insert(FireSiren.EnabledStations, Station)
+AddEventHandler("Fire-EMS-Pager:PlaySirens", function()
+	for _, Station in pairs(FireSiren.EnabledStations) do
+		TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "PlaySiren", {Station.Name, Station.ID, Station.Siren})
 	end
-	-- Short pause before sirens are played
-	Citizen.Wait(1000)
-
-	-- New NUI message
-	SendNUIMessage({
-		-- Tell the NUI to play the siren sound
-		TransactionType = "PlaySiren"
-	})
-	-- Wait for sound to finish
-	Citizen.Wait(51000)
-	-- Then allow more sirens to be sounded
-	FireSiren.Enabled = false
 end)
 
 -- Plays cancelpage sound on the client
 RegisterNetEvent("Fire-EMS-Pager:CancelPage")
 AddEventHandler("Fire-EMS-Pager:CancelPage", function(Tones, HasDetails, Details)
-	-- Temporary boolean variable
 	local NeedToPlay = false
-	-- Stop tones being paged over the top of others
 	Pager.Paging = true
 
-	-- If the pager is enabled, if not, ignore
 	if Pager.Enabled then
 		-- Loop though all tones that need to be paged
 		for _, Tone in ipairs(Tones) do
@@ -773,21 +641,12 @@ AddEventHandler("Fire-EMS-Pager:CancelPage", function(Tones, HasDetails, Details
 
 		-- If the player is tuned to one or more of the tones being paged
 		if NeedToPlay then
-			-- Draw new notification on client's screen
 			NewNoti("~g~~h~Your pager activates!", true)
-			-- Short pause before tones are played
 			Citizen.Wait(1500)
 
-			SendNUIMessage({
-				-- Tell the NUI a tone needs to be played
-				TransactionType     = "PlayTone",
-				-- Provide ending beeps
-				TransactionFile     = "cancel"
-			})
+			TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "PlayTone", "cancel")
 
-			-- If a details was included
 			if HasDetails then
-				-- Create a temporary variable for details
 				local NewDetails = ""
 
 				-- Loop though details (each word is an element)
@@ -800,41 +659,55 @@ AddEventHandler("Fire-EMS-Pager:CancelPage", function(Tones, HasDetails, Details
 
 				-- Send message to chat, only people tuned to specified tones can see the message
 				TriggerEvent("chat:addMessage", {
-					-- Use page template
 					templateId = "page",
-					-- "Fire Control" in red
+					-- Red
 					color = { 255, 0, 0},
-					-- Allow multiline
 					multiline = true,
-					-- Message
 					args = {"Fire Control", "\nAttention " .. Config.DeptName .. " - Call canceled, disregard response - " .. NewDetails}
 				})
 			-- If no details provided
 			else
 				-- Send message to chat, only people tuned to specified tones can see the message
 				TriggerEvent("chat:addMessage", {
-					-- Use page template
 					templateId = "page",
-					-- "Fire Control" in red
+					-- Red
 					color = { 255, 0, 0},
-					-- Allow multiline
 					multiline = true,
-					-- Message
 					args = {"Fire Control", "\nAttention " .. Config.DeptName .. " - Call canceled, disregard response."}
 				})
 			end
 		else
-			-- Wait same amount of time
 			Citizen.Wait(1500)
 		end
 	else
-		-- Wait same amount of time
 		Citizen.Wait(1500)
 	end
-	-- Wait for sound to finish
+
 	Citizen.Wait(3500)
-	-- Allow more tones to be paged
 	Pager.Paging = false
+end)
+
+RegisterNUICallback("RemoveSiren", function(Station)
+	-- If the client is the owner of this fire siren, remove fire siren
+	-- This check is done so only one event is sent to the server instead of 32+
+	if GetPlayerServerId(PlayerId()) == Station.ID then
+		TriggerServerEvent("Fire-EMS-Pager:RemoveSiren", Station.Name)
+	end
+
+	FireSiren.EnabledStations[Station.Name] = nil
+end)
+
+-- Bounce between server script and client script
+RegisterNetEvent("Fire-EMS-Pager:Bounce:ServerValues")
+AddEventHandler("Fire-EMS-Pager:Bounce:ServerValues", function(Sirens) FireSiren.EnabledStations = Sirens end)
+
+-- Bounce between server & client script and client NUI
+RegisterNetEvent("Fire-EMS-Pager:Bounce:NUI")
+AddEventHandler("Fire-EMS-Pager:Bounce:NUI", function(Type, Load)
+	SendNUIMessage({
+		PayloadType	= Type,
+		Payload		= Load
+	})
 end)
 
 -- Draws notification on client's screen
@@ -849,55 +722,39 @@ function NewNoti(Text, Flash)
 	end
 end
 
--- Resource master loop
+-- Volume loop
+-- Sets the volumes of all active fire sirens
 Citizen.CreateThread(function()
-	-- Forever
 	while true do
-		-- Allows safe looping
 		Citizen.Wait(0)
-		-- If fire siren is enabled
-		if FireSiren.Enabled then
-			-- Get player position
-			local pP = GetEntityCoords(GetPlayerPed(-1), false)
-			-- Temporary array
-			local StationDistances = {}
 
-			-- Loop though all valid stations
-			for _, Station in ipairs(FireSiren.Stations) do
-				-- Calculate distance between player and station
-				local Distance = GetDistanceBetweenCoords(pP.x, pP.y, pP.z, Station.Loc.x, Station.Loc.y, Station.Loc.z, true)
-				-- Insert distance into temporary array
-				table.insert(StationDistances, {Name = Station.Name, Distance = Distance + 0.01}) -- Stops divide by 0 errors
-			end
-			-- Sort array so the closest station to the player is first
-			table.sort(StationDistances, function(A, B) return A.Distance < B.Distance end)
-			-- Loop though all enabled stations
-			for _, Station in ipairs(FireSiren.EnabledStations) do
-				-- If the closest station to the player is an enabled station
-				if StationDistances[1].Name == Station.Name then
-					-- If the distance to the closest station is within the fire siren radius
-					if (StationDistances[1].Distance <= Station.Radius) then
-						-- Volume is equal to 1 (max volume) mius the distance to the nearest station from the player
-						-- divided the radius of the fire siren
-						-- New NUI message
-						SendNUIMessage({
-							-- Tell the NUI to set the sire volume
-							TransactionType	= "SetSirenVolume",
-							-- The volume
-							volume			= 1 - (StationDistances[1].Distance / Station.Radius)
-						})
-					-- If the cloest station is out of the radius of the fire siren
-					else
-						-- New NUI message
-						SendNUIMessage({
-							-- Tell the NUI to set the sire volume
-							TransactionType	= "SetSirenVolume",
-							-- The volume
-							volume     		= 0
-						})
+		local FireSirenCount = 0
+		for _, _ in pairs(FireSiren.EnabledStations) do FireSirenCount = FireSirenCount + 1 end
+
+		if FireSirenCount >= 1 then
+			local PlayerPed = PlayerPedId()
+			local PlayerCoords = GetEntityCoords(PlayerPed, false)
+
+			for _, Station in pairs(FireSiren.EnabledStations) do
+				local Distance = Vdist(PlayerCoords.x, PlayerCoords.y, PlayerCoords.z, Station.x, Station.y, Station.z) + 0.01 -- Stops divide by 0 errors
+				if (Distance <= Station.Radius) then
+
+					local SirenVolume = 1 - (Distance / Station.Radius)
+					if IsPedInAnyVehicle(PlayerPedId(), false) then
+						local VC = GetVehicleClass(GetVehiclePedIsIn(PlayerPedId()), false)
+						-- If vehicle is not a motobike or a bicycle
+						if VC ~= 8 or VC ~= 13 then
+							-- Lower the alarm volume by 45%
+							SirenVolume = SirenVolume * 0.45
+						end
 					end
+
+					TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "SetSirenVolume", {Station.Name, SirenVolume})
+				else
+					TriggerEvent("Fire-EMS-Pager:Bounce:NUI", "SetSirenVolume", {Station.Name, 0})
 				end
 			end
 		end
+
 	end
 end)
