@@ -578,7 +578,7 @@ AddEventHandler('Fire-EMS-Pager:PlayTones', function(Tones, HasDetails, Details)
 
 				-- Send message to chat, only people tuned to specified tones can see the message
 				TriggerEvent('chat:addMessage', {
-					templateId = 'page',
+					--templateId = 'page',
 					-- Red
 					color = { 255, 0, 0},
 					multiline = true,
@@ -588,7 +588,7 @@ AddEventHandler('Fire-EMS-Pager:PlayTones', function(Tones, HasDetails, Details)
 			else
 				-- Send message to chat, only people tuned to specified tones can see the message
 				TriggerEvent('chat:addMessage', {
-					templateId = 'page',
+					--templateId = 'page',
 					-- Red
 					color = { 255, 0, 0},
 					multiline = true,
@@ -659,7 +659,7 @@ AddEventHandler('Fire-EMS-Pager:CancelPage', function(Tones, HasDetails, Details
 
 				-- Send message to chat, only people tuned to specified tones can see the message
 				TriggerEvent('chat:addMessage', {
-					templateId = 'page',
+					--templateId = 'page',
 					-- Red
 					color = { 255, 0, 0},
 					multiline = true,
@@ -669,7 +669,7 @@ AddEventHandler('Fire-EMS-Pager:CancelPage', function(Tones, HasDetails, Details
 			else
 				-- Send message to chat, only people tuned to specified tones can see the message
 				TriggerEvent('chat:addMessage', {
-					templateId = 'page',
+					--templateId = 'page',
 					-- Red
 					color = { 255, 0, 0},
 					multiline = true,
