@@ -2,7 +2,7 @@
 # Inferno Collection: Fire/EMS Pager + Fire Siren
 [![Build Status](https://travis-ci.com/inferno-collection/Fire-EMS-Pager.svg?branch=development)](https://travis-ci.com/inferno-collection/Fire-EMS-Pager)
 
-__Public Alpha Version 4.55__
+__Public Alpha Version 4.56__
 
 The Fire/EMS Pager + Fire Siren is a resource that allows players to have a pager on their person at all times. The pager is turned off by default, and must be tuned to tones in order to be paged. Once a tone or tones are paged, pagers tuned to these tones will receive the tone/s; if a tone is paged that a player is tuned to, they will hear a vibration sound and a notification will pop-up on their screen informing them of the call type, if a player is not tuned to a paged tone they will hear the tone sound, but not hear a vibration or receive a notification.
 

@@ -1,4 +1,4 @@
--- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.55 Alpha
+-- Inferno Collection Fire/EMS Pager + Fire Siren Version 4.56 Alpha
 --
 -- Copyright (c) 2019, Christopher M, Inferno Collection. All rights reserved.
 --
@@ -14,7 +14,7 @@ description 'The Fire/EMS Pager + Fire Siren is a resource that allows players t
 
 author 'Inferno Collection (inferno-collection.com)'
 
-version '4.55 Alpha'
+version '4.56 Alpha'
 
 url 'https://inferno-collection.com'
 
