@@ -1,3 +1,7 @@
+> Unsupported as of 03/21/2021 - Downloads still available, but no support will be provided for any issues found.
+
+***
+
 ![channels4_banner|690x114](https://i.ibb.co/CHMD8y6/channels4-banner.jpg) 
 # Inferno Collection: Fire/EMS Pager + Fire Siren
 [![Build Status](https://travis-ci.com/inferno-collection/Fire-EMS-Pager.svg?branch=master)](https://travis-ci.com/inferno-collection/Fire-EMS-Pager)
