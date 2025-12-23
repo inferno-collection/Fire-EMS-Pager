@@ -4,7 +4,6 @@
 
 ![channels4_banner|690x114](https://i.ibb.co/CHMD8y6/channels4-banner.jpg) 
 # Inferno Collection: Fire/EMS Pager + Fire Siren
-[![Build Status](https://travis-ci.com/inferno-collection/Fire-EMS-Pager.svg?branch=master)](https://travis-ci.com/inferno-collection/Fire-EMS-Pager)
 
 __Public Beta Version 4.55__
 
@@ -15,6 +14,8 @@ The fire siren allows a custom siren to be sounded at any of the fire stations a
 In the case of the pager, multiple tones can be tuned to, and paged at once; for the fire siren, multiple stations can be sounded at once as well. Once tones are being paged, or a siren sounded, they must finish completely before more tones are paged or sirens sounded, as tones cannot be paged over other tones, and sirens cannot be sounded over other sirens (note however, sirens can be sounded at the same time as tones paged, and vice versa).
 
 The Fire/EMS Pager + Fire Siren resource is not only designed to be as efficient and lightweight as possible, but also to be customizable, and allow server owners to have as much control as possible over the resource, without the need to edit any code (with the exception of the configuration).
+
+<a href="https://www.buymeacoffee.com/inferno_collection" target="_blank"><img width="245" height="45" alt="fire_truk" src="https://inferno-collection.com/img/fire_truk.png" /></a>
 
 Presently, the following can be customized:
 - [Tones](https://github.com/inferno-collection/Fire-EMS-Pager/wiki/Adding-custom-tones).
@@ -73,5 +74,3 @@ Thank you to everyone that helped tested this resource.
 * @ChristopherM
 * @Scott_UK
 * @FrozenN00b
-***
-Interested in keeping up-to-date with what we are working on? [Check out our roadmap](https://inferno-collection.com/roadmap).
